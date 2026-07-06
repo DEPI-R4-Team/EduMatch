@@ -18,7 +18,7 @@ const platformLinks = [
 
 export function LandingFooter() {
   return (
-    <footer className="relative z-20 isolate overflow-hidden border-t border-outline-variant bg-surface-container-low px-margin-mobile py-14 md:px-margin-desktop md:py-16">
+    <footer className="relative z-20 isolate overflow-hidden border-t border-[var(--landing-border)] bg-[var(--landing-bg-soft)] px-margin-mobile py-14 md:px-margin-desktop md:py-16">
       <div
         className="landing-ambient-shape landing-ambient-shape-primary -z-10 -left-16 bottom-10"
         aria-hidden="true"
@@ -83,9 +83,7 @@ export function LandingFooter() {
           <div>
             <h2 className="mb-4 text-label-md font-semibold uppercase text-on-background">Contact</h2>
             <address className="space-y-3 text-body-sm not-italic text-on-surface-variant">
-              <a className="landing-footer-link" href="mailto:support@edumatch.example">
-                support@edumatch.example
-              </a>
+              <p>Contact details can be configured by the deployment team.</p>
               <p>Cairo, Egypt</p>
               <p>Academic Graduation Project Simulation</p>
             </address>

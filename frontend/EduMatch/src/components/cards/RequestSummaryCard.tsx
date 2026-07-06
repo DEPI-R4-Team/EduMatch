@@ -27,15 +27,15 @@ export function RequestSummaryCard({
   };
 
   return (
-    <aside className="rounded-lg border border-outline-variant bg-surface-container-low p-lg">
+    <aside className="rounded-lg border border-[#27272A] bg-[#121214] p-lg">
       <div className="rounded-md border border-primary/20 bg-primary/10 p-lg text-center">
         <p className="text-headline-xl text-primary">{applicationsCount}</p>
-        <p className="mt-xs text-label-md uppercase text-on-surface-variant">Applications</p>
+        <p className="mt-xs text-label-md uppercase text-zinc-400">Applications</p>
       </div>
 
       <dl className="mt-lg space-y-md">
         <div className="flex items-center justify-between gap-md">
-          <dt className="flex items-center gap-sm text-body-sm text-on-surface-variant">
+          <dt className="flex items-center gap-sm text-body-sm text-zinc-400">
             <FileText className="size-4 text-secondary" />
             Request status
           </dt>
@@ -44,18 +44,18 @@ export function RequestSummaryCard({
           </dd>
         </div>
         <div className="flex items-center justify-between gap-md">
-          <dt className="flex items-center gap-sm text-body-sm text-on-surface-variant">
+          <dt className="flex items-center gap-sm text-body-sm text-zinc-400">
             <CreditCard className="size-4 text-secondary" />
             Payment
           </dt>
-          <dd className="text-right text-body-sm font-medium text-on-surface">{paymentStatus}</dd>
+          <dd className="text-right text-body-sm font-medium text-zinc-100">{paymentStatus}</dd>
         </div>
         <div className="flex items-center justify-between gap-md">
-          <dt className="flex items-center gap-sm text-body-sm text-on-surface-variant">
+          <dt className="flex items-center gap-sm text-body-sm text-zinc-400">
             <WalletCards className="size-4 text-secondary" />
             Budget
           </dt>
-          <dd className="text-body-sm font-medium text-on-surface">{budget}</dd>
+          <dd className="text-body-sm font-medium text-zinc-100">{budget}</dd>
         </div>
       </dl>
 

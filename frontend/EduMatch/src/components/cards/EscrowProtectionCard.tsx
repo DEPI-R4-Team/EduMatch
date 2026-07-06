@@ -8,8 +8,8 @@ export function EscrowProtectionCard() {
           <ShieldCheck className="size-5" />
         </div>
         <div>
-          <h2 className="text-headline-md text-on-surface">Secure Escrow Protection</h2>
-          <p className="mt-sm text-body-sm text-on-surface-variant">
+          <h2 className="text-headline-md text-zinc-100">Secure Escrow Protection</h2>
+          <p className="mt-sm text-body-sm text-zinc-400">
             Your payment will be held securely by the platform until the session is completed and
             verified.
           </p>

@@ -70,11 +70,11 @@ export function InstructorInstantRequestDetailsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-label-md uppercase text-secondary">Instant request #{request.id}</p>
-            <h1 className="mt-xs text-headline-lg text-on-surface">{request.title}</h1>
+            <h1 className="mt-xs text-headline-lg text-zinc-100">{request.title}</h1>
           </div>
           <BackButton fallback="/instructor/instant-requests" />
         </div>
@@ -82,9 +82,9 @@ export function InstructorInstantRequestDetailsPage() {
 
       <main className="space-y-lg px-margin-mobile py-lg md:px-margin-desktop">
         {message ? <p className="rounded-md border border-error/25 bg-error/10 px-md py-sm text-body-sm text-error">{message}</p> : null}
-        <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+        <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
           <span className="rounded-full bg-primary/15 px-sm py-xs text-label-md uppercase text-primary">{request.status}</span>
-          <p className="mt-md text-body-md text-on-surface-variant">{request.description}</p>
+          <p className="mt-md text-body-md text-zinc-400">{request.description}</p>
           <div className="mt-lg grid gap-sm md:grid-cols-2 xl:grid-cols-3">
             <Info label="Subject" value={request.subject} />
             <Info label="Student" value={request.student_name ?? "Student"} />
@@ -107,9 +107,9 @@ export function InstructorInstantRequestDetailsPage() {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-outline-variant bg-surface-container-low p-md">
-      <p className="text-label-md uppercase text-on-surface-variant">{label}</p>
-      <p className="mt-xs text-body-sm font-medium text-on-surface">{value}</p>
+    <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
+      <p className="text-label-md uppercase text-zinc-400">{label}</p>
+      <p className="mt-xs text-body-sm font-medium text-zinc-100">{value}</p>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import type { UserRole } from "@/types/user";
 import { ROUTES } from "@/lib/routes";
 import { getDashboardPath, useAuth } from "@/hooks/useAuth";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { LoadingPage } from "@/components/LoadingScreen";
 
 type Props = {
   allowedRoles?: UserRole[];
@@ -13,7 +13,7 @@ export function ProtectedRoute({ allowedRoles }: Props) {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return <LoadingPage />;
   }
 
   if (!isAuthenticated || !user) {
@@ -31,7 +31,7 @@ export function PublicOnlyRoute() {
   const { user, isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return <LoadingPage />;
   }
 
   if (isAuthenticated && user) {

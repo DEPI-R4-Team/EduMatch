@@ -116,7 +116,7 @@ export function RequestDetailsPage() {
   }
 
   if (loading) {
-    return <div className="p-lg text-body-sm text-on-surface-variant">Loading request details...</div>;
+    return <div className="p-lg text-body-sm text-zinc-400">Loading request details...</div>;
   }
 
   if (error || !request) {
@@ -134,16 +134,16 @@ export function RequestDetailsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-label-md uppercase text-secondary">Request #{request.id}</p>
-            <h1 className="mt-xs text-headline-lg text-on-surface">Request Details</h1>
+            <h1 className="mt-xs text-headline-lg text-zinc-100">Request Details</h1>
           </div>
 
           <BackButton fallback="/student/requests" />
           <button
-            className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-outline-variant px-md text-body-sm font-medium text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+            className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-[#27272A] px-md text-body-sm font-medium text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
             onClick={() => setMessage("Edit request will be available later.")}
             type="button"
           >
@@ -160,29 +160,29 @@ export function RequestDetailsPage() {
           </p>
         ) : null}
 
-        <section className="grid gap-lg rounded-lg border border-outline-variant bg-surface-container p-lg xl:grid-cols-[minmax(0,1fr)_360px]">
+        <section className="grid gap-lg rounded-lg border border-[#27272A] bg-[#18181B] p-lg xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0">
             <div className="mb-md flex flex-wrap items-center gap-sm">
               <RequestStatusBadge status={request.status as RequestStatus} />
-              <span className="inline-flex items-center gap-xs text-body-sm text-on-surface-variant">
+              <span className="inline-flex items-center gap-xs text-body-sm text-zinc-400">
                 <CalendarDays className="size-4 text-secondary" />
                 Posted {formatDate(request.created_at)}
               </span>
             </div>
 
-            <h2 className="text-headline-lg-mobile text-on-surface md:text-headline-lg">{request.title}</h2>
-            <p className="mt-md max-w-4xl text-body-md text-on-surface-variant">{request.description}</p>
+            <h2 className="text-headline-lg-mobile text-zinc-100 md:text-headline-lg">{request.title}</h2>
+            <p className="mt-md max-w-4xl text-body-md text-zinc-400">{request.description}</p>
 
             <div className="mt-lg grid gap-sm md:grid-cols-2 xl:grid-cols-3">
               {metadataItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div className="rounded-md border border-outline-variant bg-surface-container-low p-md" key={item.label}>
-                    <dt className="flex items-center gap-sm text-body-sm text-on-surface-variant">
+                  <div className="rounded-md border border-[#27272A] bg-[#121214] p-md" key={item.label}>
+                    <dt className="flex items-center gap-sm text-body-sm text-zinc-400">
                       <Icon className="size-4 text-secondary" />
                       {item.label}
                     </dt>
-                    <dd className="mt-xs text-body-sm font-medium text-on-surface">{item.value}</dd>
+                    <dd className="mt-xs text-body-sm font-medium text-zinc-100">{item.value}</dd>
                   </div>
                 );
               })}
@@ -210,14 +210,14 @@ export function RequestDetailsPage() {
         <section className="space-y-md">
           <div className="flex flex-col gap-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-headline-md text-on-surface">Instructor Applications</h2>
-              <p className="mt-xs text-body-sm text-on-surface-variant">
+              <h2 className="text-headline-md text-zinc-100">Instructor Applications</h2>
+              <p className="mt-xs text-body-sm text-zinc-400">
                 Compare instructor proposals and choose the best fit for this request.
               </p>
             </div>
 
             <button
-              className="inline-flex h-10 w-fit items-center gap-sm rounded-md border border-outline-variant bg-surface-container px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+              className="inline-flex h-10 w-fit items-center gap-sm rounded-md border border-[#27272A] bg-[#18181B] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
               onClick={() => setMessage("Sorting will be available later.")}
               type="button"
             >
@@ -237,7 +237,7 @@ export function RequestDetailsPage() {
                 />
               ))
             ) : (
-              <div className="rounded-lg border border-dashed border-outline bg-surface-container-low p-lg text-center text-body-sm text-on-surface-variant">
+              <div className="rounded-lg border border-dashed border-[#27272A] bg-[#121214] p-lg text-center text-body-sm text-zinc-400">
                 No instructor applications yet.
               </div>
             )}

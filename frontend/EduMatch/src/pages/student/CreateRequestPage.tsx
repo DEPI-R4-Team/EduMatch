@@ -13,6 +13,7 @@ import {
 import { BackButton } from "@/components/ui/BackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MIN_SESSION_PRICE, minimumPriceMessage } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import { createRequest } from "@/services/requests.service";
 
@@ -33,7 +34,7 @@ const initialForm: FormState = {
 };
 
 function FieldLabel({ children }: { children: string }) {
-  return <label className="text-body-sm font-medium text-on-surface">{children}</label>;
+  return <label className="text-body-sm font-medium text-zinc-100">{children}</label>;
 }
 
 function FieldError({ message }: { message?: string }) {
@@ -63,7 +64,7 @@ function RequestTypeCard({
         "flex min-h-28 w-full items-start gap-md rounded-lg border p-md text-left transition",
         active
           ? "border-primary bg-primary/10 shadow-[0_0_24px_rgba(192,193,255,0.12)]"
-          : "border-outline-variant bg-surface-container-low hover:border-primary/50 hover:bg-surface-container-high",
+          : "border-[#27272A] bg-[#121214] hover:border-primary/50 hover:bg-[#27272A]",
       )}
       onClick={onClick}
       type="button"
@@ -77,8 +78,8 @@ function RequestTypeCard({
         <Icon className="size-5" />
       </span>
       <span className="min-w-0">
-        <span className="block text-body-md font-medium text-on-surface">{label}</span>
-        <span className="mt-xs block text-body-sm leading-relaxed text-on-surface-variant">{description}</span>
+        <span className="block text-body-md font-medium text-zinc-100">{label}</span>
+        <span className="mt-xs block text-body-sm leading-relaxed text-zinc-400">{description}</span>
       </span>
     </button>
   );
@@ -87,44 +88,49 @@ function RequestTypeCard({
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-md">
-      <span className="text-on-surface-variant">{label}</span>
-      <span className="text-right font-medium text-on-surface">{value}</span>
+      <span className="text-zinc-400">{label}</span>
+      <span className="text-right font-medium text-zinc-100">{value}</span>
     </div>
   );
 }
 
 function FinancialsCard({
   budget,
+  budgetError,
   isSubmitting,
   onBudgetChange,
   onDraft,
 }: {
   budget: string;
+  budgetError?: string;
   isSubmitting: boolean;
   onBudgetChange: (value: string) => void;
   onDraft: () => void;
 }) {
   return (
-    <aside className="rounded-lg border border-outline-variant bg-surface-container p-lg xl:sticky xl:top-24">
+    <aside className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg xl:sticky xl:top-24">
       <div className="mb-lg flex items-center gap-sm">
         <div className="flex size-9 items-center justify-center rounded-md bg-secondary/15 text-secondary">
           <BadgeDollarSign className="size-5" />
         </div>
-        <h2 className="text-headline-md text-on-surface">Financials</h2>
+        <h2 className="text-headline-md text-zinc-100">Financials</h2>
       </div>
 
       <div className="space-y-sm">
         <FieldLabel>Base Offer / Budget</FieldLabel>
         <Input
-          className="h-11 border-outline-variant bg-surface-container-low text-on-surface"
+          className="h-11 border-[#27272A] bg-[#121214] text-zinc-100"
+          min={MIN_SESSION_PRICE}
           onChange={(event) => onBudgetChange(event.target.value)}
           placeholder="100 EGP"
+          type="number"
           value={budget}
         />
-        <p className="text-body-sm text-on-surface-variant">Suggested range: 100 - 250 EGP / session</p>
+        <p className="text-body-sm text-zinc-400">Minimum session price: {MIN_SESSION_PRICE} EGP.</p>
+        <FieldError message={budgetError} />
       </div>
 
-      <div className="my-lg space-y-sm rounded-md border border-outline-variant bg-surface-container-low p-md text-body-sm">
+      <div className="my-lg space-y-sm rounded-md border border-[#27272A] bg-[#121214] p-md text-body-sm">
         <SummaryRow label="Request Type" value="Normal Request" />
         <SummaryRow label="Session Mode" value="Individual" />
         <SummaryRow label="Estimated Price" value={budget || "Not set"} />
@@ -136,7 +142,7 @@ function FinancialsCard({
           {isSubmitting ? "Posting..." : "Post Request"}
         </Button>
         <Button
-          className="h-11 w-full border-outline-variant bg-transparent text-on-surface hover:bg-surface-container-high"
+          className="h-11 w-full border-[#27272A] bg-transparent text-zinc-100 hover:bg-[#27272A]"
           onClick={onDraft}
           type="button"
           variant="outline"
@@ -145,7 +151,7 @@ function FinancialsCard({
         </Button>
       </div>
 
-      <p className="mt-md text-center text-body-sm text-on-surface-variant">
+      <p className="mt-md text-center text-body-sm text-zinc-400">
         Payment will only be requested after an instructor accepts your request.
       </p>
     </aside>
@@ -176,6 +182,10 @@ export function CreateRequestPage() {
     if (!form.description.trim()) nextErrors.description = "Description is required.";
     if (!form.learningLevel) nextErrors.learningLevel = "Learning level is required.";
     if (!form.budget.trim()) nextErrors.budget = "Budget is required.";
+    const budget = Number.parseFloat(form.budget);
+    if (form.budget.trim() && (!Number.isFinite(budget) || budget < MIN_SESSION_PRICE)) {
+      nextErrors.budget = minimumPriceMessage();
+    }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -203,7 +213,7 @@ export function CreateRequestPage() {
         final_price_per_student: form.budget ? Number.parseFloat(form.budget) : undefined,
       });
       setSuccessMessage("Request created successfully.");
-      window.setTimeout(() => navigate("/student/requests"), 500);
+      window.setTimeout(() => navigate("/student/requests", { state: { refreshRequestsAt: Date.now() } }), 500);
     } catch (error) {
       setSubmitError(parseApiError(error));
     } finally {
@@ -218,16 +228,16 @@ export function CreateRequestPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <div>
           <BackButton className="mb-md" fallback="/student/requests" />
-          <div className="mb-sm flex items-center gap-sm text-label-md uppercase text-on-surface-variant">
+          <div className="mb-sm flex items-center gap-sm text-label-md uppercase text-zinc-400">
             <span>Requests</span>
             <ChevronRight className="size-4" />
             <span className="text-secondary">New</span>
           </div>
-          <h1 className="text-headline-lg text-on-surface">Create Learning Request</h1>
-          <p className="mt-xs max-w-3xl text-body-sm text-on-surface-variant">
+          <h1 className="text-headline-lg text-zinc-100">Create Learning Request</h1>
+          <p className="mt-xs max-w-3xl text-body-sm text-zinc-400">
             Choose the type of help you need, then add clear details so instructors can respond with confidence.
           </p>
         </div>
@@ -256,8 +266,8 @@ export function CreateRequestPage() {
             </div>
           ) : null}
 
-          <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-            <h2 className="text-headline-md text-on-surface">Choose Request Type</h2>
+          <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+            <h2 className="text-headline-md text-zinc-100">Choose Request Type</h2>
             <div className="mt-lg grid gap-md lg:grid-cols-3">
               <RequestTypeCard
                 active
@@ -281,20 +291,20 @@ export function CreateRequestPage() {
             </div>
           </section>
 
-          <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-            <h2 className="text-headline-md text-on-surface">Core Details</h2>
+          <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+            <h2 className="text-headline-md text-zinc-100">Core Details</h2>
 
             <div className="mt-lg space-y-md">
               <div className="space-y-sm">
                 <FieldLabel>Subject</FieldLabel>
                 <Input
                   aria-invalid={Boolean(errors.subject)}
-                  className="h-11 border-outline-variant bg-surface-container-low text-on-surface"
+                  className="h-11 border-[#27272A] bg-[#121214] text-zinc-100"
                   onChange={(event) => updateField("subject", event.target.value)}
                   placeholder="e.g. Advanced Calculus, React, Machine Learning 101"
                   value={form.subject}
                 />
-                <p className="text-body-sm text-on-surface-variant">
+                <p className="text-body-sm text-zinc-400">
                   Be specific to attract specialized instructors.
                 </p>
                 <FieldError message={errors.subject} />
@@ -304,7 +314,7 @@ export function CreateRequestPage() {
                 <FieldLabel>Description</FieldLabel>
                 <textarea
                   aria-invalid={Boolean(errors.description)}
-                  className="min-h-36 w-full resize-y rounded-md border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none transition placeholder:text-on-surface-variant focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="min-h-36 w-full resize-y rounded-md border border-[#27272A] bg-[#121214] px-md py-sm text-body-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus-visible:border-[#8b5cf6] focus-visible:ring-3 focus-visible:ring-[#8b5cf6]/30"
                   onChange={(event) => updateField("description", event.target.value)}
                   placeholder="Describe what you want to learn, your current understanding, and specific goals..."
                   value={form.description}
@@ -317,7 +327,7 @@ export function CreateRequestPage() {
                   <FieldLabel>Learning Level</FieldLabel>
                   <select
                     aria-invalid={Boolean(errors.learningLevel)}
-                    className="h-11 w-full rounded-md border border-outline-variant bg-surface-container-low px-md text-body-sm text-on-surface outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="h-11 w-full rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-100 outline-none transition focus-visible:border-[#8b5cf6] focus-visible:ring-3 focus-visible:ring-[#8b5cf6]/30"
                     onChange={(event) => updateField("learningLevel", event.target.value)}
                     value={form.learningLevel}
                   >
@@ -332,7 +342,7 @@ export function CreateRequestPage() {
                 <div className="space-y-sm">
                   <FieldLabel>Preferred Language</FieldLabel>
                   <select
-                    className="h-11 w-full rounded-md border border-outline-variant bg-surface-container-low px-md text-body-sm text-on-surface outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="h-11 w-full rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-100 outline-none transition focus-visible:border-[#8b5cf6] focus-visible:ring-3 focus-visible:ring-[#8b5cf6]/30"
                     onChange={(event) => updateField("language", event.target.value)}
                     value={form.language}
                   >
@@ -348,6 +358,7 @@ export function CreateRequestPage() {
 
         <FinancialsCard
           budget={form.budget}
+          budgetError={errors.budget}
           isSubmitting={isSubmitting}
           onBudgetChange={(value) => updateField("budget", value)}
           onDraft={handleDraft}

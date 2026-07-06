@@ -25,7 +25,7 @@ export function BackButton({ fallback, label = "Back", className }: BackButtonPr
   return (
     <button
       className={cn(
-        "inline-flex h-9 items-center justify-center gap-xs rounded-md border border-outline-variant bg-surface-container px-md text-body-sm font-medium text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface",
+        "inline-flex h-9 items-center justify-center gap-xs rounded-xl border border-white/10 bg-transparent px-5 text-body-sm font-semibold text-white transition-colors hover:bg-white/5",
         className,
       )}
       onClick={handleClick}

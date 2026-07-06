@@ -4,7 +4,7 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import InstructorWallet, Payment, WalletTransaction
+from app.models import GroupParticipant, InstructorWallet, Payment, WalletTransaction
 
 
 def get_or_create_wallet(db: Session, instructor_id: int) -> InstructorWallet:
@@ -26,6 +26,9 @@ def release_held_payment(db: Session, payment: Payment) -> Payment:
     wallet.total_earned += payment.amount
     payment.status = "released"
     payment.released_at = datetime.now(timezone.utc)
+    participant = db.scalar(select(GroupParticipant).where(GroupParticipant.payment_id == payment.id))
+    if participant is not None:
+        participant.payment_status = "released"
 
     db.add(
         WalletTransaction(
@@ -47,6 +50,9 @@ def refund_held_payment(db: Session, payment: Payment) -> Payment:
     wallet.pending_balance = max(Decimal("0.00"), wallet.pending_balance - payment.amount)
     payment.status = "refunded"
     payment.refunded_at = datetime.now(timezone.utc)
+    participant = db.scalar(select(GroupParticipant).where(GroupParticipant.payment_id == payment.id))
+    if participant is not None:
+        participant.payment_status = "refunded"
 
     db.add(
         WalletTransaction(

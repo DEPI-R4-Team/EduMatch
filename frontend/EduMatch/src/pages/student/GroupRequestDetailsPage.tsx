@@ -92,15 +92,16 @@ export function GroupRequestDetailsPage() {
   const isParticipant = Boolean(participant);
   const isPaid = participant?.payment_status === "held" || participant?.payment_status === "released";
   const canPay = isParticipant && group.status === "waiting_payment" && participant?.payment_status === "unpaid";
+  const payableAmount = group.final_price_per_student ?? group.current_price_per_student;
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <BackButton className="mb-md" fallback="/student/group-requests" />
         <div className="flex flex-col gap-md lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h1 className="text-headline-lg text-on-surface">{group.title}</h1>
-            <p className="mt-xs text-body-sm text-on-surface-variant">{group.subject} · owner {group.owner_name ?? "Student"}</p>
+            <h1 className="text-headline-lg text-zinc-100">{group.title}</h1>
+            <p className="mt-xs text-body-sm text-zinc-400">{group.subject} · owner {group.owner_name ?? "Student"}</p>
           </div>
           <RequestStatusBadge status={group.status as never} />
         </div>
@@ -111,45 +112,46 @@ export function GroupRequestDetailsPage() {
           {error ? <ErrorState message={error} /> : null}
           {notice ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{notice}</p> : null}
 
-          <article className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-            <h2 className="text-headline-md text-on-surface">Group Details</h2>
-            <p className="mt-md text-body-sm leading-relaxed text-on-surface-variant">{group.description}</p>
+          <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+            <h2 className="text-headline-md text-zinc-100">Group Details</h2>
+            <p className="mt-md text-body-sm leading-relaxed text-zinc-400">{group.description}</p>
             <div className="mt-lg grid gap-md sm:grid-cols-2">
               <Info label="Participants" value={`${group.active_participants_count}/${group.max_participants ?? "-"}`} />
-              <Info label="Current Price" value={money(group.current_price_per_student)} />
+              <Info label={group.price_locked ? "Locked Price" : "Current Price"} value={money(payableAmount)} />
               <Info label="If You Join" value={money(group.price_if_you_join)} />
               <Info label="Minimum Price" value={money(group.min_price_per_student)} />
+              <Info label="Payment Progress" value={`${group.paid_participants_count}/${group.total_required_participants} paid`} />
               <Info label="Accepted Instructor" value={group.accepted_instructor_name ?? "Not accepted yet"} />
-              <Info label="Your Payment" value={participant?.payment_status ?? "Not joined"} />
+              <Info label="Your Payment" value={group.current_user_payment_status ?? participant?.payment_status ?? "Not joined"} />
             </div>
           </article>
 
-          <article className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-            <h2 className="text-headline-md text-on-surface">Participants</h2>
+          <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+            <h2 className="text-headline-md text-zinc-100">Participants</h2>
             <div className="mt-md divide-y divide-outline-variant">
               {group.participants.map((item) => (
                 <div className="flex items-center justify-between gap-md py-sm" key={item.id}>
-                  <span className="text-body-sm text-on-surface">{item.student_name ?? "Student"}</span>
-                  <span className="rounded-full bg-surface-container-high px-sm py-xs text-label-md uppercase text-on-surface-variant">{item.payment_status}</span>
+                  <span className="text-body-sm text-zinc-100">{item.student_name ?? "Student"}</span>
+                  <span className="rounded-full bg-[#27272A] px-sm py-xs text-label-md uppercase text-zinc-400">{item.payment_status}</span>
                 </div>
               ))}
             </div>
           </article>
 
           {isOwner ? (
-            <article className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Instructor Applications</h2>
+            <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Instructor Applications</h2>
               {group.applications.length === 0 ? (
-                <p className="mt-md text-body-sm text-on-surface-variant">No instructor applications yet.</p>
+                <p className="mt-md text-body-sm text-zinc-400">No instructor applications yet.</p>
               ) : (
                 <div className="mt-md space-y-md">
                   {group.applications.map((application) => (
-                    <div className="rounded-md border border-outline-variant bg-surface-container-low p-md" key={application.id}>
+                    <div className="rounded-md border border-[#27272A] bg-[#121214] p-md" key={application.id}>
                       <div className="flex flex-col gap-sm md:flex-row md:items-start md:justify-between">
                         <div>
-                          <p className="text-body-md font-medium text-on-surface">{application.instructor_name ?? "Instructor"}</p>
-                          <p className="mt-xs text-body-sm text-on-surface-variant">{application.message}</p>
-                          <p className="mt-xs text-body-sm text-on-surface-variant">Proposed price: {application.proposed_price} EGP · {application.status}</p>
+                          <p className="text-body-md font-medium text-zinc-100">{application.instructor_name ?? "Instructor"}</p>
+                          <p className="mt-xs text-body-sm text-zinc-400">{application.message}</p>
+                          <p className="mt-xs text-body-sm text-zinc-400">Proposed price: {application.proposed_price} EGP · {application.status}</p>
                         </div>
                         {application.status === "pending" && group.status === "open" ? (
                           <div className="flex gap-xs">
@@ -173,8 +175,8 @@ export function GroupRequestDetailsPage() {
         </section>
 
         <aside className="space-y-md">
-          <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-            <h2 className="text-headline-md text-on-surface">Actions</h2>
+          <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+            <h2 className="text-headline-md text-zinc-100">Actions</h2>
             <div className="mt-md space-y-sm">
               {!isParticipant ? (
                 <button className="h-10 w-full rounded-md bg-primary text-body-sm font-medium text-on-primary hover:bg-primary/90 disabled:opacity-50" disabled={actionLoading || group.status !== "open"} onClick={() => void runAction(() => joinGroupRequest(group.id), "You joined this group request.")} type="button">
@@ -189,7 +191,7 @@ export function GroupRequestDetailsPage() {
               {canPay ? (
                 <button className="inline-flex h-10 w-full items-center justify-center gap-xs rounded-md bg-secondary text-body-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:opacity-50" disabled={actionLoading} onClick={() => void runAction(() => payGroupRequest(group.id), "Your share is now held in escrow.")} type="button">
                   <WalletCards className="size-4" />
-                  Pay My Share
+                  Pay {money(payableAmount)}
                 </button>
               ) : null}
 
@@ -200,7 +202,7 @@ export function GroupRequestDetailsPage() {
                 </Link>
               ) : null}
 
-              <p className="text-body-sm text-on-surface-variant">
+              <p className="text-body-sm text-zinc-400">
                 Session becomes ready after all active participants pay.
               </p>
             </div>
@@ -213,9 +215,9 @@ export function GroupRequestDetailsPage() {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-outline-variant bg-surface-container-low p-md">
-      <p className="text-label-md uppercase text-on-surface-variant">{label}</p>
-      <p className="mt-xs text-body-md text-on-surface">{value}</p>
+    <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
+      <p className="text-label-md uppercase text-zinc-400">{label}</p>
+      <p className="mt-xs text-body-md text-zinc-100">{value}</p>
     </div>
   );
 }

@@ -16,19 +16,19 @@ function getInitials(name: string) {
 
 export function SessionInstructorCard({ session }: SessionInstructorCardProps) {
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-      <h2 className="text-headline-md text-on-surface">Instructor</h2>
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+      <h2 className="text-headline-md text-zinc-100">Instructor</h2>
 
       <div className="mt-lg flex items-start gap-md">
         <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-body-sm font-semibold text-on-primary">
           {getInitials(session.instructorName)}
         </div>
         <div className="min-w-0">
-          <p className="text-body-md font-medium text-on-surface">{session.instructorName}</p>
-          <p className="text-body-sm text-on-surface-variant">{session.instructorSpecialization}</p>
-          <p className="mt-sm flex items-center gap-xs text-body-sm text-on-surface-variant">
+          <p className="text-body-md font-medium text-zinc-100">{session.instructorName}</p>
+          <p className="text-body-sm text-zinc-400">{session.instructorSpecialization}</p>
+          <p className="mt-sm flex items-center gap-xs text-body-sm text-zinc-400">
             <Star className="size-4 fill-tertiary text-tertiary" />
-            <span className="font-medium text-on-surface">{session.instructorRating}</span>
+            <span className="font-medium text-zinc-100">{session.instructorRating}</span>
             <span>({session.instructorReviews} reviews)</span>
           </p>
         </div>

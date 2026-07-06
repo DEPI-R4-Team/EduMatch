@@ -7,14 +7,14 @@ type SessionChatPreviewCardProps = {
 
 export function SessionChatPreviewCard({ sessionId }: SessionChatPreviewCardProps) {
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div>
         <p className="text-label-md uppercase text-secondary">Session Chat</p>
-        <h2 className="mt-xs text-headline-md text-on-surface">Latest Message</h2>
+        <h2 className="mt-xs text-headline-md text-zinc-100">Latest Message</h2>
       </div>
 
-      <div className="mt-lg rounded-md border border-outline-variant bg-surface-container-low p-md">
-        <p className="text-body-sm text-on-surface-variant">
+      <div className="mt-lg rounded-md border border-[#27272A] bg-[#121214] p-md">
+        <p className="text-body-sm text-zinc-400">
           Open chat to view real database messages for this session.
         </p>
       </div>

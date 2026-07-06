@@ -24,7 +24,7 @@ export function PaymentRequiredCard({
             <CreditCard className="size-5" />
             <h2 className="text-headline-md">Payment Required</h2>
           </div>
-          <p className="max-w-3xl text-body-sm text-on-surface-variant">
+          <p className="max-w-3xl text-body-sm text-zinc-400">
             The instructor has been accepted. Complete the simulated payment to hold your
             session payment safely until the session is completed.
           </p>
@@ -38,22 +38,22 @@ export function PaymentRequiredCard({
         </Link>
       </div>
 
-      <dl className="mt-lg grid gap-sm rounded-md border border-tertiary/20 bg-surface-container-low/80 p-md text-body-sm sm:grid-cols-2 xl:grid-cols-4">
+      <dl className="mt-lg grid gap-sm rounded-md border border-tertiary/20 bg-[#121214]/80 p-md text-body-sm sm:grid-cols-2 xl:grid-cols-4">
         <div>
-          <dt className="text-on-surface-variant">Instructor</dt>
-          <dd className="mt-xs font-medium text-on-surface">{instructorName}</dd>
+          <dt className="text-zinc-400">Instructor</dt>
+          <dd className="mt-xs font-medium text-zinc-100">{instructorName}</dd>
         </div>
         <div>
-          <dt className="text-on-surface-variant">Session price</dt>
-          <dd className="mt-xs font-medium text-on-surface">{sessionPrice}</dd>
+          <dt className="text-zinc-400">Session price</dt>
+          <dd className="mt-xs font-medium text-zinc-100">{sessionPrice}</dd>
         </div>
         <div>
-          <dt className="text-on-surface-variant">Platform fee</dt>
-          <dd className="mt-xs font-medium text-on-surface">{platformFee}</dd>
+          <dt className="text-zinc-400">Platform fee</dt>
+          <dd className="mt-xs font-medium text-zinc-100">{platformFee}</dd>
         </div>
         <div>
-          <dt className="text-on-surface-variant">Total amount</dt>
-          <dd className="mt-xs font-medium text-on-surface">{totalAmount}</dd>
+          <dt className="text-zinc-400">Total amount</dt>
+          <dd className="mt-xs font-medium text-zinc-100">{totalAmount}</dd>
         </div>
       </dl>
     </section>

@@ -105,7 +105,7 @@ export function InstructorSessionDetailsPage() {
   }
 
   if (loading) {
-    return <div className="p-lg text-body-sm text-on-surface-variant">Loading session details...</div>;
+    return <div className="p-lg text-body-sm text-zinc-400">Loading session details...</div>;
   }
 
   if (error || !session) {
@@ -117,12 +117,12 @@ export function InstructorSessionDetailsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <BackButton className="mb-md" fallback={ROUTES.INSTRUCTOR.SESSIONS} />
         <div className="flex flex-col gap-md lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h1 className="text-headline-lg text-on-surface">{session.request_title ?? "Learning Session"}</h1>
-            <p className="mt-xs text-body-sm text-on-surface-variant">Session ID: {session.id}</p>
+            <h1 className="text-headline-lg text-zinc-100">{session.request_title ?? "Learning Session"}</h1>
+            <p className="mt-xs text-body-sm text-zinc-400">Session ID: {session.id}</p>
           </div>
           <SessionStatusBadge status={session.status} />
         </div>
@@ -137,9 +137,9 @@ export function InstructorSessionDetailsPage() {
 
         <div className="grid gap-lg xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-lg">
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Session Overview</h2>
-              <p className="mt-md text-body-sm leading-relaxed text-on-surface-variant">
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Session Overview</h2>
+              <p className="mt-md text-body-sm leading-relaxed text-zinc-400">
                 Session created from an accepted EduMatch request.
               </p>
               <div className="mt-lg grid gap-md sm:grid-cols-2">
@@ -148,61 +148,61 @@ export function InstructorSessionDetailsPage() {
 
                   return (
                     <div className="flex items-center gap-sm text-body-sm" key={item.label}>
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-container-high text-on-surface-variant">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#27272A] text-zinc-400">
                         <Icon className="size-4" />
                       </div>
-                      <span className="text-on-surface">{item.label}</span>
+                      <span className="text-zinc-100">{item.label}</span>
                     </div>
                   );
                 })}
               </div>
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Payment Summary</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Payment Summary</h2>
               <div className="mt-md space-y-sm">
                 <div className="flex items-center justify-between text-body-sm">
-                  <span className="text-on-surface-variant">Session Price</span>
-                  <span className="text-on-surface">{formatMoney(session.payment_amount)}</span>
+                  <span className="text-zinc-400">Session Price</span>
+                  <span className="text-zinc-100">{formatMoney(session.payment_amount)}</span>
                 </div>
                 <div className="flex items-center justify-between text-body-sm">
-                  <span className="text-on-surface-variant">Payment Status</span>
-                  <span className="text-on-surface">{session.payment_status ?? "pending"}</span>
+                  <span className="text-zinc-400">Payment Status</span>
+                  <span className="text-zinc-100">{session.payment_status ?? "pending"}</span>
                 </div>
               </div>
             </section>
           </div>
 
           <aside className="space-y-lg">
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Student</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Student</h2>
               <div className="mt-md flex items-center gap-sm">
                 <div className="flex size-10 items-center justify-center rounded-full bg-primary/15 text-body-sm font-medium text-primary">
                   {initials(studentName)}
                 </div>
                 <div>
-                  <p className="text-body-md font-medium text-on-surface">{studentName}</p>
-                  <p className="text-body-sm text-on-surface-variant">Student</p>
+                  <p className="text-body-md font-medium text-zinc-100">{studentName}</p>
+                  <p className="text-body-sm text-zinc-400">Student</p>
                 </div>
               </div>
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Completion</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Completion</h2>
               <dl className="mt-md space-y-sm text-body-sm">
                 <div className="flex justify-between gap-md">
-                  <dt className="text-on-surface-variant">Instructor completion</dt>
-                  <dd className="text-right text-on-surface">{session.instructor_marked_completed_at ? "Marked" : "Not marked"}</dd>
+                  <dt className="text-zinc-400">Instructor completion</dt>
+                  <dd className="text-right text-zinc-100">{session.instructor_marked_completed_at ? "Marked" : "Not marked"}</dd>
                 </div>
                 <div className="flex justify-between gap-md">
-                  <dt className="text-on-surface-variant">Student confirmation</dt>
-                  <dd className="text-right text-on-surface">{session.student_confirmed_completed_at ? "Confirmed" : "Pending"}</dd>
+                  <dt className="text-zinc-400">Student confirmation</dt>
+                  <dd className="text-right text-zinc-100">{session.student_confirmed_completed_at ? "Confirmed" : "Pending"}</dd>
                 </div>
               </dl>
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Quick Actions</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Quick Actions</h2>
               <div className="mt-md space-y-sm">
                 {session.status === "ready" ? (
                   <button
@@ -224,7 +224,7 @@ export function InstructorSessionDetailsPage() {
                   Mark as Completed
                 </button>
                 <Link
-                  className="flex h-10 w-full items-center justify-center gap-xs rounded-md border border-outline-variant text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+                  className="flex h-10 w-full items-center justify-center gap-xs rounded-md border border-[#27272A] text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
                   to={`/instructor/chat?sessionId=${session.id}`}
                 >
                   <MessageSquareText className="size-4" />

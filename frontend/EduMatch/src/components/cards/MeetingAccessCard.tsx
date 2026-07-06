@@ -11,27 +11,27 @@ export function MeetingAccessCard({ session }: MeetingAccessCardProps) {
   const [showMessage, setShowMessage] = useState(false);
 
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-label-md uppercase text-secondary">Meeting Access</p>
-          <h2 className="mt-xs text-headline-md text-on-surface">{session.platform}</h2>
+          <h2 className="mt-xs text-headline-md text-zinc-100">{session.platform}</h2>
         </div>
         <PaymentStatusBadge status={session.paymentStatus} />
       </div>
 
       <div className="mt-lg grid gap-sm sm:grid-cols-2">
-        <div className="rounded-md border border-outline-variant bg-surface-container-low p-md">
+        <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
           <p className="text-label-md uppercase text-secondary">Platform</p>
-          <p className="mt-xs text-body-sm font-medium text-on-surface">{session.platform}</p>
+          <p className="mt-xs text-body-sm font-medium text-zinc-100">{session.platform}</p>
         </div>
-        <div className="rounded-md border border-outline-variant bg-surface-container-low p-md">
+        <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
           <p className="text-label-md uppercase text-secondary">Meeting Status</p>
-          <p className="mt-xs text-body-sm font-medium text-on-surface">Available after payment</p>
+          <p className="mt-xs text-body-sm font-medium text-zinc-100">Available after payment</p>
         </div>
       </div>
 
-      <p className="mt-md text-body-sm text-on-surface-variant">You can join when the session time starts.</p>
+      <p className="mt-md text-body-sm text-zinc-400">You can join when the session time starts.</p>
 
       <button
         className="mt-lg inline-flex h-10 w-full items-center justify-center gap-xs rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90 sm:w-auto"

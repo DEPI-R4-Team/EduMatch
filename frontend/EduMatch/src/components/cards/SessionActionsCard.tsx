@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { CheckCircle2, MessageSquareText, ReceiptText, RefreshCw, Star, Video, XCircle } from "lucide-react";
+import { canRescheduleNormalSession } from "@/lib/sessionPermissions";
 import type { SessionDetailsData } from "@/types/sessionDetails";
 
 type SessionActionsCardProps = {
@@ -21,9 +22,14 @@ export function SessionActionsCard({
   onReschedule,
   session,
 }: SessionActionsCardProps) {
+  const canReschedule = canRescheduleNormalSession({
+    request_type: session.requestType,
+    status: session.status,
+  });
+
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-      <h2 className="text-headline-md text-on-surface">Session Actions</h2>
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+      <h2 className="text-headline-md text-zinc-100">Session Actions</h2>
 
       <div className="mt-lg grid gap-sm">
         {session.status === "completed" ? (
@@ -37,7 +43,7 @@ export function SessionActionsCard({
               Leave Review
             </button>
             <Link
-              className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-outline-variant px-md text-body-sm font-medium text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+              className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-[#27272A] px-md text-body-sm font-medium text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
               to="/student/payments"
             >
               <ReceiptText className="size-4" />
@@ -69,14 +75,16 @@ export function SessionActionsCard({
               <CheckCircle2 className="size-4" />
               Confirm Session Completed
             </button>
-            <button
-              className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-outline-variant px-md text-body-sm font-medium text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
-              onClick={onReschedule}
-              type="button"
-            >
-              <RefreshCw className="size-4" />
-              Reschedule
-            </button>
+            {canReschedule ? (
+              <button
+                className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-[#27272A] px-md text-body-sm font-medium text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
+                onClick={onReschedule}
+                type="button"
+              >
+                <RefreshCw className="size-4" />
+                Reschedule
+              </button>
+            ) : null}
             <button
               className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-error/40 px-md text-body-sm font-medium text-error transition hover:bg-error/10"
               onClick={onCancelSession}

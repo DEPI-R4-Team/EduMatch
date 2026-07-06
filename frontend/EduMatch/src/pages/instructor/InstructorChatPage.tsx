@@ -238,15 +238,15 @@ export function InstructorChatPage() {
           <div className="mx-auto flex max-w-5xl flex-col gap-md">
             {notice ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{notice}</p> : null}
             {error ? <p className="rounded-md border border-error/25 bg-error/10 px-md py-sm text-body-sm text-error">{error}</p> : null}
-            {loading ? <p className="rounded-md border border-outline-variant bg-surface-container px-md py-sm text-body-sm text-on-surface-variant">Loading chat...</p> : null}
+            {loading ? <p className="rounded-md border border-[#27272A] bg-[#18181B] px-md py-sm text-body-sm text-zinc-400">Loading chat...</p> : null}
 
             {!activeContext && conversations.length === 0 && !loading && !error ? (
-              <div className="rounded-lg border border-dashed border-outline bg-surface-container-low p-xl text-center">
+              <div className="rounded-lg border border-dashed border-[#27272A] bg-[#121214] p-xl text-center">
                 <div className="mx-auto mb-md flex size-14 items-center justify-center rounded-full bg-primary/15 text-primary">
                   <MessageSquare className="size-6" />
                 </div>
-                <h2 className="text-headline-md text-on-surface">No conversations yet</h2>
-                <p className="mx-auto mt-sm max-w-md text-body-sm text-on-surface-variant">
+                <h2 className="text-headline-md text-zinc-100">No conversations yet</h2>
+                <p className="mx-auto mt-sm max-w-md text-body-sm text-zinc-400">
                   Your applications and accepted sessions will appear here.
                 </p>
                 <Link className="mt-md inline-flex h-10 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90" to={ROUTES.INSTRUCTOR.REQUESTS}>
@@ -256,17 +256,17 @@ export function InstructorChatPage() {
             ) : null}
 
             {!activeContext && conversations.length > 0 ? (
-              <div className="rounded-lg border border-dashed border-outline bg-surface-container-low p-xl text-center">
+              <div className="rounded-lg border border-dashed border-[#27272A] bg-[#121214] p-xl text-center">
                 <div className="mx-auto mb-md flex size-14 items-center justify-center rounded-full bg-primary/15 text-primary">
                   <MessageSquare className="size-6" />
                 </div>
-                <h2 className="text-headline-md text-on-surface">Select a conversation</h2>
-                <p className="mt-sm text-body-sm text-on-surface-variant">Choose an application or session from the list.</p>
+                <h2 className="text-headline-md text-zinc-100">Select a conversation</h2>
+                <p className="mt-sm text-body-sm text-zinc-400">Choose an application or session from the list.</p>
               </div>
             ) : null}
 
             {activeContext && messages.length === 0 && !loading && !error ? (
-              <p className="rounded-md border border-dashed border-outline bg-surface-container-low p-md text-body-sm text-on-surface-variant">
+              <p className="rounded-md border border-dashed border-[#27272A] bg-[#121214] p-md text-body-sm text-zinc-400">
                 No messages yet. Send the first message for this conversation.
               </p>
             ) : null}

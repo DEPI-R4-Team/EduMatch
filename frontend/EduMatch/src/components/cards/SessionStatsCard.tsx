@@ -1,25 +1,41 @@
 import { CalendarCheck, CalendarClock, CirclePause, XCircle } from "lucide-react";
+import { useMemo } from "react";
+import type { Session } from "@/types/session";
 
-const stats = [
-  { label: "Completed", value: "12", icon: CalendarCheck, className: "text-emerald-300" },
-  { label: "Upcoming", value: "4", icon: CalendarClock, className: "text-primary" },
-  { label: "Active", value: "1", icon: CirclePause, className: "text-blue-300" },
-  { label: "Cancelled", value: "2", icon: XCircle, className: "text-error" },
-];
+type SessionStatsCardProps = {
+  loading?: boolean;
+  sessions: Session[];
+};
 
-export function SessionStatsCard() {
+const statMeta = [
+  { key: "completed", label: "Completed", icon: CalendarCheck, className: "text-emerald-400" },
+  { key: "upcoming", label: "Upcoming", icon: CalendarClock, className: "text-[#8b5cf6]" },
+  { key: "active", label: "Active", icon: CirclePause, className: "text-[#8b5cf6]" },
+  { key: "cancelled", label: "Cancelled", icon: XCircle, className: "text-red-400" },
+] as const;
+
+export function SessionStatsCard({ loading = false, sessions }: SessionStatsCardProps) {
+  const stats = useMemo(() => {
+    return {
+      completed: sessions.filter((session) => session.status === "completed").length,
+      upcoming: sessions.filter((session) => session.status === "ready").length,
+      active: sessions.filter((session) => session.status === "active").length,
+      cancelled: sessions.filter((session) => session.status === "cancelled").length,
+    };
+  }, [sessions]);
+
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-      <h2 className="text-headline-md text-on-surface">Session Stats</h2>
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+      <h2 className="text-headline-md text-zinc-100">Session Stats</h2>
       <div className="mt-md grid grid-cols-2 gap-sm">
-        {stats.map((stat) => {
+        {statMeta.map((stat) => {
           const Icon = stat.icon;
 
           return (
-            <div className="rounded-md border border-outline-variant bg-surface-container-low p-md" key={stat.label}>
+            <div className="rounded-md border border-[#27272A] bg-[#121214] p-md" key={stat.key}>
               <Icon className={`mb-sm size-5 ${stat.className}`} />
-              <p className="text-headline-md text-on-surface">{stat.value}</p>
-              <p className="text-body-sm text-on-surface-variant">{stat.label}</p>
+              <p className="text-headline-md text-zinc-100">{loading ? "-" : stats[stat.key]}</p>
+              <p className="text-body-sm text-zinc-400">{stat.label}</p>
             </div>
           );
         })}

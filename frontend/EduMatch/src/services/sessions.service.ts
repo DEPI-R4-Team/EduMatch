@@ -30,3 +30,10 @@ export async function cancelSession(sessionId: number): Promise<Session> {
   const response = await api.put<Session>(`/sessions/${sessionId}/cancel`);
   return response.data;
 }
+
+export async function rescheduleSession(sessionId: number, scheduledAt: string): Promise<Session> {
+  const response = await api.put<Session>(`/sessions/${sessionId}/reschedule`, {
+    scheduled_at: scheduledAt,
+  });
+  return response.data;
+}

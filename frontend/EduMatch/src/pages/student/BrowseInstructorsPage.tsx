@@ -80,7 +80,7 @@ function AvailabilityBadge({ available }: { available: boolean }) {
         "rounded-full px-sm py-xs text-label-md uppercase ring-1",
         available
           ? "bg-emerald-400/15 text-emerald-300 ring-emerald-400/25"
-          : "bg-on-surface-variant/15 text-on-surface-variant ring-outline-variant",
+          : "bg-on-surface-variant/15 text-zinc-400 ring-outline-variant",
       )}
     >
       {available ? "Available" : "Not available"}
@@ -93,15 +93,15 @@ function InstructorCard({ instructor }: { instructor: InstructorListItem }) {
   const rating = Number.parseFloat(instructor.rating ?? "0");
 
   return (
-    <article className="flex min-h-[390px] flex-col rounded-lg border border-outline-variant bg-surface-container p-lg transition hover:border-primary/50 hover:bg-surface-container-high hover:shadow-[0_0_36px_rgba(192,193,255,0.10)]">
+    <article className="flex min-h-[390px] flex-col rounded-lg border border-[#27272A] bg-[#18181B] p-lg transition hover:border-primary/50 hover:bg-[#27272A] hover:shadow-[0_4px_20px_rgba(139,92,246,0.05)]">
       <div className="mb-md flex items-start justify-between gap-md">
         <div className="flex min-w-0 items-center gap-md">
           <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 to-secondary/80 text-body-md font-semibold text-on-primary">
             {initials(instructor.full_name)}
           </div>
           <div className="min-w-0">
-            <h2 className="truncate text-headline-md text-on-surface">{instructor.full_name}</h2>
-            <p className="truncate text-body-sm text-on-surface-variant">
+            <h2 className="truncate text-headline-md text-zinc-100">{instructor.full_name}</h2>
+            <p className="truncate text-body-sm text-zinc-400">
               {valueOrMissing(instructor.specialization)}
             </p>
           </div>
@@ -121,28 +121,28 @@ function InstructorCard({ instructor }: { instructor: InstructorListItem }) {
         </span>
       </div>
 
-      <p className="line-clamp-3 flex-1 text-body-sm text-on-surface-variant">
+      <p className="line-clamp-3 flex-1 text-body-sm text-zinc-400">
         {valueOrMissing(instructor.bio, "No bio added yet")}
       </p>
 
       <div className="mt-md flex flex-wrap gap-sm">
         {skills.length > 0 ? (
           skills.slice(0, 4).map((skill) => (
-            <span className="rounded-full bg-surface-container-low px-sm py-xs text-body-sm text-on-surface-variant ring-1 ring-outline-variant" key={skill}>
+            <span className="rounded-full bg-[#121214] px-sm py-xs text-body-sm text-zinc-400 ring-1 ring-outline-variant" key={skill}>
               {skill}
             </span>
           ))
         ) : (
-          <span className="text-body-sm text-on-surface-variant">No skills added yet</span>
+          <span className="text-body-sm text-zinc-400">No skills added yet</span>
         )}
       </div>
 
-      <div className="my-lg grid gap-sm rounded-md border border-outline-variant bg-surface-container-low p-md text-body-sm sm:grid-cols-2">
-        <div className="flex items-center gap-sm text-on-surface-variant">
+      <div className="my-lg grid gap-sm rounded-md border border-[#27272A] bg-[#121214] p-md text-body-sm sm:grid-cols-2">
+        <div className="flex items-center gap-sm text-zinc-400">
           <WalletCards className="size-4 text-secondary" />
           <span>{formatPrice(instructor.price_per_session)}</span>
         </div>
-        <div className="flex items-center gap-sm text-on-surface-variant">
+        <div className="flex items-center gap-sm text-zinc-400">
           <BriefcaseBusiness className="size-4 text-secondary" />
           <span>{valueOrMissing(instructor.experience)}</span>
         </div>
@@ -202,16 +202,16 @@ export function BrowseInstructorsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <div className="flex flex-col gap-md lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <div className="mb-sm flex items-center gap-sm text-label-md uppercase text-on-surface-variant">
+            <div className="mb-sm flex items-center gap-sm text-label-md uppercase text-zinc-400">
               <span>Student</span>
               <span className="size-1 rounded-full bg-outline" />
               <span className="text-secondary">Browse Instructors</span>
             </div>
-            <h1 className="text-headline-lg text-on-surface">Find Your Instructor</h1>
-            <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+            <h1 className="text-headline-lg text-zinc-100">Find Your Instructor</h1>
+            <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
               Browse real registered instructors and review their profiles before creating a request.
             </p>
           </div>
@@ -224,7 +224,7 @@ export function BrowseInstructorsPage() {
       </header>
 
       <div className="space-y-lg px-margin-mobile py-lg md:px-margin-desktop">
-        <section className="rounded-lg border border-outline-variant bg-surface-container p-md">
+        <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-md">
           <div className="flex flex-col gap-md xl:flex-row xl:items-center">
             <form
               className="flex min-w-0 flex-1 flex-col gap-sm sm:flex-row"
@@ -234,10 +234,10 @@ export function BrowseInstructorsPage() {
               }}
             >
               <div className="relative min-w-0 flex-1">
-                <Search className="pointer-events-none absolute left-md top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" />
-                <Input className="h-11 border-outline-variant bg-surface-container-low pl-10 text-on-surface" onChange={(event) => setSearchInput(event.target.value)} placeholder="Search by name, specialization, skill, or bio..." value={searchInput} />
+                <Search className="pointer-events-none absolute left-md top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+                <Input className="h-11 border-[#27272A] bg-[#121214] pl-10 text-zinc-100" onChange={(event) => setSearchInput(event.target.value)} placeholder="Search by name, specialization, skill, or bio..." value={searchInput} />
               </div>
-              <Input className="h-11 border-outline-variant bg-surface-container-low text-on-surface sm:w-64" onChange={(event) => setSpecialization(event.target.value)} placeholder="Specialization" value={specialization} />
+              <Input className="h-11 border-[#27272A] bg-[#121214] text-zinc-100 sm:w-64" onChange={(event) => setSpecialization(event.target.value)} placeholder="Specialization" value={specialization} />
               <button className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90" type="submit">
                 Search
               </button>
@@ -245,14 +245,14 @@ export function BrowseInstructorsPage() {
 
             <div className="flex flex-wrap gap-sm">
               <div className="relative">
-                <button className="flex h-11 items-center gap-sm rounded-md border border-outline-variant bg-surface-container-low px-md text-body-sm text-on-surface-variant transition hover:border-primary/50 hover:bg-surface-container-high hover:text-on-surface" onClick={() => setActiveMenu(activeMenu === "Rating" ? null : "Rating")} type="button">
+                <button className="flex h-11 items-center gap-sm rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-400 transition hover:border-primary/50 hover:bg-[#27272A] hover:text-zinc-100" onClick={() => setActiveMenu(activeMenu === "Rating" ? null : "Rating")} type="button">
                   {ratingOptions.find((option) => option.value === minRating)?.label ?? "Rating"}
                   <ChevronDown className="size-4" />
                 </button>
                 {activeMenu === "Rating" ? (
-                  <div className="absolute right-0 z-20 mt-xs w-44 rounded-md border border-outline-variant bg-surface-container p-xs shadow-lg">
+                  <div className="absolute right-0 z-20 mt-xs w-44 rounded-md border border-[#27272A] bg-[#18181B] p-xs shadow-lg">
                     {ratingOptions.map((option) => (
-                      <button className="block w-full rounded-md px-sm py-xs text-left text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface" key={option.label} onClick={() => { setMinRating(option.value); setActiveMenu(null); }} type="button">
+                      <button className="block w-full rounded-md px-sm py-xs text-left text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100" key={option.label} onClick={() => { setMinRating(option.value); setActiveMenu(null); }} type="button">
                         {option.label}
                       </button>
                     ))}
@@ -261,14 +261,14 @@ export function BrowseInstructorsPage() {
               </div>
 
               <div className="relative">
-                <button className="flex h-11 items-center gap-sm rounded-md border border-outline-variant bg-surface-container-low px-md text-body-sm text-on-surface-variant transition hover:border-primary/50 hover:bg-surface-container-high hover:text-on-surface" onClick={() => setActiveMenu(activeMenu === "Price" ? null : "Price")} type="button">
+                <button className="flex h-11 items-center gap-sm rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-400 transition hover:border-primary/50 hover:bg-[#27272A] hover:text-zinc-100" onClick={() => setActiveMenu(activeMenu === "Price" ? null : "Price")} type="button">
                   {priceOptions.find((option) => option.value === maxPrice)?.label ?? "Price"}
                   <ChevronDown className="size-4" />
                 </button>
                 {activeMenu === "Price" ? (
-                  <div className="absolute right-0 z-20 mt-xs w-44 rounded-md border border-outline-variant bg-surface-container p-xs shadow-lg">
+                  <div className="absolute right-0 z-20 mt-xs w-44 rounded-md border border-[#27272A] bg-[#18181B] p-xs shadow-lg">
                     {priceOptions.map((option) => (
-                      <button className="block w-full rounded-md px-sm py-xs text-left text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface" key={option.label} onClick={() => { setMaxPrice(option.value); setActiveMenu(null); }} type="button">
+                      <button className="block w-full rounded-md px-sm py-xs text-left text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100" key={option.label} onClick={() => { setMaxPrice(option.value); setActiveMenu(null); }} type="button">
                         {option.label}
                       </button>
                     ))}
@@ -277,14 +277,14 @@ export function BrowseInstructorsPage() {
               </div>
 
               <div className="relative">
-                <button className="flex h-11 items-center gap-sm rounded-md border border-outline-variant bg-surface-container-low px-md text-body-sm text-on-surface-variant transition hover:border-primary/50 hover:bg-surface-container-high hover:text-on-surface" onClick={() => setActiveMenu(activeMenu === "Availability" ? null : "Availability")} type="button">
+                <button className="flex h-11 items-center gap-sm rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-400 transition hover:border-primary/50 hover:bg-[#27272A] hover:text-zinc-100" onClick={() => setActiveMenu(activeMenu === "Availability" ? null : "Availability")} type="button">
                   {availabilityOptions.find((option) => option.value === availability)?.label ?? "Availability"}
                   <ChevronDown className="size-4" />
                 </button>
                 {activeMenu === "Availability" ? (
-                  <div className="absolute right-0 z-20 mt-xs w-48 rounded-md border border-outline-variant bg-surface-container p-xs shadow-lg">
+                  <div className="absolute right-0 z-20 mt-xs w-48 rounded-md border border-[#27272A] bg-[#18181B] p-xs shadow-lg">
                     {availabilityOptions.map((option) => (
-                      <button className="block w-full rounded-md px-sm py-xs text-left text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface" key={option.label} onClick={() => { setAvailability(option.value); setActiveMenu(null); }} type="button">
+                      <button className="block w-full rounded-md px-sm py-xs text-left text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100" key={option.label} onClick={() => { setAvailability(option.value); setActiveMenu(null); }} type="button">
                         {option.label}
                       </button>
                     ))}

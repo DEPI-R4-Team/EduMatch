@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
-SessionStatus = Literal["ready", "active", "completed", "cancelled", "disputed"]
+SessionStatus = Literal["waiting_payment", "ready", "active", "completed", "cancelled", "disputed"]
 
 
 class SessionResponse(BaseModel):
@@ -26,6 +26,7 @@ class SessionResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     request_title: str | None = None
+    request_type: str | None = None
     request_status: str | None = None
     payment_status: str | None = None
     payment_amount: Decimal | None = None
@@ -34,3 +35,7 @@ class SessionResponse(BaseModel):
     student_name: str | None = None
     instructor_name: str | None = None
     has_review: bool = False
+
+
+class SessionRescheduleRequest(BaseModel):
+    scheduled_at: datetime

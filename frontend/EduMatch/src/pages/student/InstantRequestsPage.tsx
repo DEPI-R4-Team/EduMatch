@@ -48,11 +48,11 @@ export function InstantRequestsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-headline-lg text-on-surface">Instant Requests</h1>
-            <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+            <h1 className="text-headline-lg text-zinc-100">Instant Requests</h1>
+            <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
               Track urgent requests accepted by available instructors.
             </p>
           </div>
@@ -74,19 +74,19 @@ export function InstantRequestsPage() {
         ) : (
           <section className="grid gap-md lg:grid-cols-2">
             {requests.map((request) => (
-              <article className="rounded-lg border border-outline-variant bg-surface-container p-lg" key={request.id}>
+              <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg" key={request.id}>
                 <div className="flex items-start justify-between gap-md">
                   <div className="min-w-0">
-                    <h2 className="truncate text-headline-md text-on-surface">{request.title}</h2>
-                    <p className="mt-xs text-body-sm text-on-surface-variant">{request.subject}</p>
+                    <h2 className="truncate text-headline-md text-zinc-100">{request.title}</h2>
+                    <p className="mt-xs text-body-sm text-zinc-400">{request.subject}</p>
                   </div>
                   <span className="rounded-full bg-secondary/15 px-sm py-xs text-label-md uppercase text-secondary">{request.status}</span>
                 </div>
-                <p className="mt-md line-clamp-2 text-body-sm text-on-surface-variant">{request.description}</p>
+                <p className="mt-md line-clamp-2 text-body-sm text-zinc-400">{request.description}</p>
                 <div className="mt-lg grid gap-sm text-body-sm sm:grid-cols-2">
-                  <span className="text-on-surface-variant">Budget: <b className="text-on-surface">{money(request.budget)}</b></span>
-                  <span className="text-on-surface-variant">Expires: <b className="text-on-surface">{formatDate(request.expires_at)}</b></span>
-                  <span className="text-on-surface-variant">Instructor: <b className="text-on-surface">{request.accepted_instructor_name ?? "Not accepted yet"}</b></span>
+                  <span className="text-zinc-400">Budget: <b className="text-zinc-100">{money(request.budget)}</b></span>
+                  <span className="text-zinc-400">Expires: <b className="text-zinc-100">{formatDate(request.expires_at)}</b></span>
+                  <span className="text-zinc-400">Instructor: <b className="text-zinc-100">{request.accepted_instructor_name ?? "Not accepted yet"}</b></span>
                 </div>
                 <div className="mt-lg flex flex-wrap gap-sm">
                   <Link className="inline-flex h-10 items-center justify-center rounded-md border border-secondary/40 px-md text-body-sm text-secondary transition hover:bg-secondary/10" to={`/student/instant-requests/${request.id}`}>
@@ -99,7 +99,7 @@ export function InstantRequestsPage() {
                     </Link>
                   ) : null}
                   {request.status === "paid" && request.session_id ? (
-                    <Link className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-outline-variant px-md text-body-sm text-on-surface-variant hover:bg-surface-container-high" to={`/student/sessions/${request.session_id}`}>
+                    <Link className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-[#27272A] px-md text-body-sm text-zinc-400 hover:bg-[#27272A]" to={`/student/sessions/${request.session_id}`}>
                       <MessageSquareText className="size-4" />
                       Open Chat
                     </Link>

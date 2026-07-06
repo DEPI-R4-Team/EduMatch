@@ -10,8 +10,10 @@ import {
 } from "@/components/forms/PaymentMethodSelector";
 import { BackButton } from "@/components/ui/BackButton";
 import type { PaymentStatus } from "@/components/ui/PaymentStatusBadge";
+import { getGroupRequestById, payGroupRequest } from "@/services/groupRequests.service";
 import { getPaymentBySession, payForSession } from "@/services/payments.service";
 import { getSessionById } from "@/services/sessions.service";
+import type { GroupRequest } from "@/types/groupRequest";
 import type { Payment, PaymentMethod as ApiPaymentMethod } from "@/types/payment";
 import type { Session } from "@/types/session";
 
@@ -57,6 +59,7 @@ export function PaymentConfirmationPage() {
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
   const [paidMethod, setPaidMethod] = useState<PaymentMethod | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [groupRequest, setGroupRequest] = useState<GroupRequest | null>(null);
   const [payment, setPayment] = useState<Payment | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -73,6 +76,11 @@ export function PaymentConfirmationPage() {
       try {
         const sessionData = await getSessionById(numericSessionId);
         setSession(sessionData);
+        if (sessionData.session_mode === "group") {
+          setGroupRequest(await getGroupRequestById(sessionData.request_id));
+        } else {
+          setGroupRequest(null);
+        }
         try {
           const paymentData = await getPaymentBySession(numericSessionId);
           setPayment(paymentData);
@@ -100,13 +108,22 @@ export function PaymentConfirmationPage() {
         totalAmount: formatNumber(payment.total_amount),
       };
     }
+    if (groupRequest) {
+      const amount = formatNumber(groupRequest.final_price_per_student ?? groupRequest.current_price_per_student);
+      const platformFee = Number((amount * 0.1).toFixed(2));
+      return {
+        sessionPrice: amount,
+        platformFee,
+        totalAmount: amount + platformFee,
+      };
+    }
 
     return {
       sessionPrice: formatNumber(session?.payment_amount),
       platformFee: formatNumber(session?.payment_platform_fee),
       totalAmount: formatNumber(session?.payment_total_amount),
     };
-  }, [payment, session]);
+  }, [groupRequest, payment, session]);
 
   const details = {
     instructorName: session?.instructor_name ?? payment?.instructor_name ?? "Instructor",
@@ -126,7 +143,14 @@ export function PaymentConfirmationPage() {
     setSubmitting(true);
     setError("");
     try {
-      const paymentData = await payForSession(numericSessionId, toApiPaymentMethod(selectedMethod));
+      let paymentData: Payment;
+      if (groupRequest) {
+        const groupPayment = await payGroupRequest(groupRequest.id, toApiPaymentMethod(selectedMethod));
+        paymentData = groupPayment.payment;
+        setGroupRequest(groupPayment.group_request);
+      } else {
+        paymentData = await payForSession(numericSessionId, toApiPaymentMethod(selectedMethod));
+      }
       setPayment(paymentData);
       setPaymentStatus(paymentData.status);
       setPaidMethod(selectedMethod);
@@ -144,14 +168,14 @@ export function PaymentConfirmationPage() {
 
         <header>
           <p className="text-label-md uppercase text-secondary">Session #{sessionId}</p>
-          <h1 className="mt-xs text-headline-lg text-on-surface">Complete Payment</h1>
-          <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+          <h1 className="mt-xs text-headline-lg text-zinc-100">Complete Payment</h1>
+          <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
             Review session details and select a simulated payment method to confirm your booking.
           </p>
         </header>
 
         {loading ? (
-          <section className="rounded-lg border border-outline-variant bg-surface-container p-lg text-body-sm text-on-surface-variant">
+          <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg text-body-sm text-zinc-400">
             Loading payment details...
           </section>
         ) : null}
@@ -167,6 +191,26 @@ export function PaymentConfirmationPage() {
         <div className="grid gap-lg xl:grid-cols-[minmax(0,3fr)_minmax(320px,2fr)]">
           <main className="space-y-lg">
             <SessionPaymentDetailsCard details={details} />
+            {groupRequest ? (
+              <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+                <p className="text-label-md uppercase text-secondary">Group Session Payment</p>
+                <h2 className="mt-xs text-headline-md text-zinc-100">Your group share</h2>
+                <div className="mt-md grid gap-md sm:grid-cols-3">
+                  <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
+                    <p className="text-label-md uppercase text-zinc-400">Your amount</p>
+                    <p className="mt-xs text-body-md font-semibold text-zinc-100">{paymentAmounts.sessionPrice.toFixed(2)} EGP</p>
+                  </div>
+                  <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
+                    <p className="text-label-md uppercase text-zinc-400">Participants paid</p>
+                    <p className="mt-xs text-body-md font-semibold text-zinc-100">{groupRequest.paid_participants_count} of {groupRequest.total_required_participants}</p>
+                  </div>
+                  <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
+                    <p className="text-label-md uppercase text-zinc-400">Your status</p>
+                    <p className="mt-xs text-body-md font-semibold capitalize text-zinc-100">{groupRequest.current_user_payment_status ?? paymentStatus}</p>
+                  </div>
+                </div>
+              </section>
+            ) : null}
             <EscrowProtectionCard />
             <PaymentMethodSelector
               onSelectMethod={setSelectedMethod}

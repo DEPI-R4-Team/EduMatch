@@ -27,11 +27,11 @@ export function StudentPaymentRequiredCard({
       <div className="flex flex-col gap-md lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="mb-sm flex flex-wrap items-center gap-sm">
-            <h3 className="text-headline-md text-on-surface">{payment.session}</h3>
+            <h3 className="text-headline-md text-zinc-100">{payment.session}</h3>
             <PaymentStatusBadge status={payment.status} />
           </div>
-          <p className="text-body-sm text-on-surface-variant">Instructor: {payment.instructor}</p>
-          <p className="mt-md flex max-w-2xl items-start gap-sm text-body-sm text-on-surface-variant">
+          <p className="text-body-sm text-zinc-400">Instructor: {payment.instructor}</p>
+          <p className="mt-md flex max-w-2xl items-start gap-sm text-body-sm text-zinc-400">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-tertiary" />
             Your payment will be held safely by the platform until the session is completed.
           </p>
@@ -46,18 +46,18 @@ export function StudentPaymentRequiredCard({
         </Link>
       </div>
 
-      <dl className="mt-lg grid gap-sm rounded-md border border-tertiary/20 bg-surface-container-low/80 p-md text-body-sm sm:grid-cols-3">
+      <dl className="mt-lg grid gap-sm rounded-md border border-tertiary/20 bg-[#121214]/80 p-md text-body-sm sm:grid-cols-3">
         <div>
-          <dt className="text-on-surface-variant">Session Price</dt>
-          <dd className="mt-xs font-medium text-on-surface">{payment.sessionPrice}</dd>
+          <dt className="text-zinc-400">Session Price</dt>
+          <dd className="mt-xs font-medium text-zinc-100">{payment.sessionPrice}</dd>
         </div>
         <div>
-          <dt className="text-on-surface-variant">Platform Fee</dt>
-          <dd className="mt-xs font-medium text-on-surface">{payment.platformFee}</dd>
+          <dt className="text-zinc-400">Platform Fee</dt>
+          <dd className="mt-xs font-medium text-zinc-100">{payment.platformFee}</dd>
         </div>
         <div>
-          <dt className="text-on-surface-variant">Total</dt>
-          <dd className="mt-xs font-medium text-on-surface">{payment.total}</dd>
+          <dt className="text-zinc-400">Total</dt>
+          <dd className="mt-xs font-medium text-zinc-100">{payment.total}</dd>
         </div>
       </dl>
     </article>

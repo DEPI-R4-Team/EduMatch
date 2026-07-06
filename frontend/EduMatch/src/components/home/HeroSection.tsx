@@ -1,98 +1,81 @@
 import { Link } from "react-router-dom";
+import { ArrowRight, GraduationCap, Sparkles, Zap } from "lucide-react";
+import { Reveal } from "@/components/animations/Reveal";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { FloatingPreviews } from "./FloatingPreviews";
 import { ROUTES } from "@/lib/routes";
 
-const AVATARS = ["👨‍🏫", "👩‍💻", "👨‍🎓"] as const;
+const PRODUCT_CHIPS = ["Normal requests", "Group learning", "Instant help"] as const;
 
 export function HeroSection() {
   return (
-    <section className="min-h-[85vh] flex items-center relative overflow-hidden px-margin-mobile md:px-margin-desktop max-w-[1440px] mx-auto pt-8 pb-16">
-      {/* Radial background gradient */}
-      <div
-        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pointer-events-none"
-        aria-hidden="true"
-      />
+    <section className="relative mx-auto flex min-h-[88vh] max-w-[1440px] items-center justify-center overflow-hidden px-margin-mobile pb-20 pt-14 md:px-margin-desktop">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.2),transparent_34%),linear-gradient(180deg,#030303,#050505_58%,#030303)]" aria-hidden="true" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:72px_72px] opacity-30 [mask-image:radial-gradient(circle_at_center,black,transparent_78%)]" aria-hidden="true" />
+      <div className="pointer-events-none absolute left-1/2 top-[38%] -z-10 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8b5cf6]/20 blur-[130px]" aria-hidden="true" />
 
-      <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10 w-full">
-        {/* ── Left: Content ── */}
-        <div className="space-y-8 text-center lg:text-left pt-12 lg:pt-0">
-          {/* Live badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container border border-outline-variant text-body-sm text-secondary mx-auto lg:mx-0">
-            <span className="relative flex h-2 w-2" aria-hidden="true">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary" />
+      <div className="relative z-10 flex w-full flex-col items-center gap-12">
+        <div className="mx-auto max-w-[62rem] space-y-8 pt-12 text-center lg:pt-0">
+          <Reveal delay={40} className="inline-flex">
+            <span className="landing-eyebrow mx-auto">
+              <Zap className="h-3.5 w-3.5" aria-hidden="true" />
+              Instant and scheduled learning sessions
             </span>
-            Instant &amp; scheduled learning sessions
-          </div>
+          </Reveal>
 
-          {/* Headline */}
-          <h1 className="text-headline-xl md:text-[56px] md:leading-[64px] font-bold text-on-background tracking-tight">
-            Get the right instructor{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-              exactly when you need one.
-            </span>
-          </h1>
-
-          {/* Description */}
-          <p className="text-body-lg text-on-surface-variant max-w-[36rem] mx-auto lg:mx-0">
-            Post detailed academic requests for scheduled sessions, or request instant
-            help and connect with a verified instructor in seconds. The smarter way to
-            learn.
-          </p>
-
-          {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
-            <Link
-              to={ROUTES.REGISTER}
-              className={cn(
-                buttonVariants({ variant: "default" }),
-                "w-full sm:w-auto px-8 py-3.5 h-auto rounded-lg text-label-md font-semibold shadow-[0_0_20px_rgba(192,193,255,0.3)] hover:opacity-90 gap-2",
-              )}
-            >
-              <span
-                className="material-symbols-outlined text-[20px]"
-                style={{ fontVariationSettings: "'FILL' 0" }}
-                aria-hidden="true"
-              >
-                add_circle
+          <Reveal delay={120}>
+            <h1 className="landing-heading mx-auto max-w-[58rem] text-[clamp(2.75rem,7vw,5.8rem)] font-black leading-[0.95] text-white">
+              Get the right instructor{" "}
+              <span className="bg-gradient-to-r from-[#8b5cf6] via-[#a78bfa] to-white bg-clip-text text-transparent">
+                exactly when you need one.
               </span>
-              Create a Request
-            </Link>
-            <Link
-              to={ROUTES.REGISTER}
-              className="w-full sm:w-auto bg-surface-container border border-outline-variant text-on-background font-label-md text-label-md px-8 py-3.5 rounded-lg hover:bg-surface-variant transition-colors inline-flex items-center justify-center gap-2"
-            >
-              <span
-                className="material-symbols-outlined text-[20px]"
-                style={{ fontVariationSettings: "'FILL' 0" }}
-                aria-hidden="true"
-              >
-                co_present
-              </span>
-              Join as Instructor
-            </Link>
-          </div>
+            </h1>
+          </Reveal>
 
-          {/* Avatar row */}
-          <div className="flex items-center gap-4 justify-center lg:justify-start text-body-sm text-on-surface-variant pt-4">
-            <div className="flex -space-x-2" aria-hidden="true">
-              {AVATARS.map((emoji, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full bg-surface-container-high border-2 border-background flex items-center justify-center text-[10px]"
-                >
-                  {emoji}
+          <Reveal delay={220}>
+            <p className="mx-auto max-w-[43rem] text-body-lg text-gray-400">
+              Post detailed academic requests for scheduled sessions, or request instant help and connect with a verified instructor. EduMatch keeps requests, sessions, chat, and simulated payments organized.
+            </p>
+          </Reveal>
+
+          <Reveal delay={320}>
+            <div className="flex flex-col items-center justify-center gap-4 pt-2 sm:flex-row">
+              <Link
+                to={ROUTES.REGISTER}
+                className={cn(
+                  buttonVariants({ variant: "default" }),
+                  "landing-button h-auto w-full gap-2 rounded-xl bg-[#8b5cf6] px-8 py-4 text-label-md font-bold text-white shadow-[0_0_20px_rgba(139,92,246,0.2)] hover:bg-[#7c3aed] sm:w-auto",
+                )}
+              >
+                Create a Request
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/button:translate-x-1" aria-hidden="true" />
+              </Link>
+              <Link
+                to={ROUTES.REGISTER}
+                className="landing-button inline-flex h-auto w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-transparent px-8 py-4 text-label-md font-bold text-white backdrop-blur transition-colors hover:bg-white/5 sm:w-auto"
+              >
+                <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                Join as Instructor
+              </Link>
+            </div>
+          </Reveal>
+
+          <Reveal delay={420}>
+            <div className="mx-auto grid max-w-[38rem] gap-3 pt-2 text-left sm:grid-cols-3">
+              {PRODUCT_CHIPS.map((item) => (
+                <div key={item} className="rounded-2xl border border-white/5 bg-[#0a0a0a]/80 px-4 py-3 text-body-sm font-semibold text-gray-400 backdrop-blur-xl">
+                  <Sparkles className="mb-2 h-4 w-4 text-[#8b5cf6]" aria-hidden="true" />
+                  {item}
                 </div>
               ))}
             </div>
-            <span>Over 500+ active sessions this week</span>
-          </div>
+          </Reveal>
         </div>
 
-        {/* ── Right: Floating UI ── */}
-        <FloatingPreviews />
+        <Reveal delay={260} variant="scale-in">
+          <FloatingPreviews />
+        </Reveal>
       </div>
     </section>
   );

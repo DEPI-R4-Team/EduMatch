@@ -42,11 +42,11 @@ export function GroupRequestsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <div className="flex flex-col gap-md lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h1 className="text-headline-lg text-on-surface">Group Requests</h1>
-            <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+            <h1 className="text-headline-lg text-zinc-100">Group Requests</h1>
+            <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
               Join classmates, split the session cost, and learn with a shared instructor.
             </p>
           </div>
@@ -59,17 +59,17 @@ export function GroupRequestsPage() {
       <main className="space-y-lg px-margin-mobile py-lg md:px-margin-desktop">
         {error ? <ErrorState message={error} /> : null}
         <section className="grid gap-md md:grid-cols-3">
-          <div className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+          <div className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
             <p className="text-label-md uppercase text-secondary">My groups</p>
-            <p className="mt-xs text-headline-lg text-on-surface">{myGroups.length}</p>
+            <p className="mt-xs text-headline-lg text-zinc-100">{myGroups.length}</p>
           </div>
-          <div className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+          <div className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
             <p className="text-label-md uppercase text-secondary">Available</p>
-            <p className="mt-xs text-headline-lg text-on-surface">{groups.length}</p>
+            <p className="mt-xs text-headline-lg text-zinc-100">{groups.length}</p>
           </div>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-md top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" />
-            <Input className="h-full min-h-16 border-outline-variant bg-surface-container pl-10 text-on-surface" onChange={(event) => setSearch(event.target.value)} placeholder="Search group requests..." value={search} />
+            <Search className="pointer-events-none absolute left-md top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
+            <Input className="h-full min-h-16 border-[#27272A] bg-[#18181B] pl-10 text-zinc-100" onChange={(event) => setSearch(event.target.value)} placeholder="Search group requests..." value={search} />
           </div>
         </section>
 
@@ -80,20 +80,20 @@ export function GroupRequestsPage() {
         ) : (
           <section className="grid gap-md lg:grid-cols-2">
             {visibleGroups.map((group) => (
-              <article className="rounded-lg border border-outline-variant bg-surface-container p-lg" key={group.id}>
+              <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg" key={group.id}>
                 <div className="flex items-start justify-between gap-md">
                   <div className="min-w-0">
-                    <h2 className="truncate text-headline-md text-on-surface">{group.title}</h2>
-                    <p className="mt-xs text-body-sm text-on-surface-variant">{group.subject}</p>
+                    <h2 className="truncate text-headline-md text-zinc-100">{group.title}</h2>
+                    <p className="mt-xs text-body-sm text-zinc-400">{group.subject}</p>
                   </div>
                   <span className="rounded-full bg-primary/15 px-sm py-xs text-label-md uppercase text-primary">{group.status}</span>
                 </div>
-                <p className="mt-md line-clamp-2 text-body-sm text-on-surface-variant">{group.description}</p>
+                <p className="mt-md line-clamp-2 text-body-sm text-zinc-400">{group.description}</p>
                 <div className="mt-lg grid gap-sm text-body-sm sm:grid-cols-2">
-                  <span className="text-on-surface-variant">Owner: <b className="text-on-surface">{group.owner_name ?? "Student"}</b></span>
-                  <span className="text-on-surface-variant">Participants: <b className="text-on-surface">{group.active_participants_count}/{group.max_participants ?? "-"}</b></span>
-                  <span className="text-on-surface-variant">Current price: <b className="text-on-surface">{money(group.current_price_per_student)}</b></span>
-                  <span className="text-on-surface-variant">If you join: <b className="text-on-surface">{money(group.price_if_you_join)}</b></span>
+                  <span className="text-zinc-400">Owner: <b className="text-zinc-100">{group.owner_name ?? "Student"}</b></span>
+                  <span className="text-zinc-400">Participants: <b className="text-zinc-100">{group.active_participants_count}/{group.max_participants ?? "-"}</b></span>
+                  <span className="text-zinc-400">Current price: <b className="text-zinc-100">{money(group.current_price_per_student)}</b></span>
+                  <span className="text-zinc-400">If you join: <b className="text-zinc-100">{money(group.price_if_you_join)}</b></span>
                 </div>
                 <Link className="mt-lg inline-flex h-10 items-center justify-center gap-xs rounded-md border border-secondary/40 px-md text-body-sm text-secondary transition hover:bg-secondary/10" to={`/student/group-requests/${group.id}`}>
                   <Users className="size-4" />

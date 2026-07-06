@@ -52,20 +52,20 @@ export function AdminPaymentsPage() {
 
   return (
     <Page title="Payments" description="Manage held simulated payments." error={error} message={message} loading={loading} empty={!payments.length}>
-      <select className="h-10 w-fit rounded-md border border-outline-variant bg-surface-container px-md text-body-sm text-on-surface" value={status} onChange={(e) => setStatus(e.target.value)}>
+      <select className="h-10 w-fit rounded-md border border-[#27272A] bg-[#18181B] px-md text-body-sm text-zinc-100" value={status} onChange={(e) => setStatus(e.target.value)}>
         {["", "pending", "held", "released", "refunded", "cancelled", "disputed"].map((item) => <option key={item} value={item}>{item || "All statuses"}</option>)}
       </select>
-      <section className="overflow-hidden rounded-lg border border-outline-variant bg-surface-container">
+      <section className="overflow-hidden rounded-lg border border-[#27272A] bg-[#18181B]">
         <Header headers={["ID", "Student", "Instructor", "Amount", "Fee", "Total", "Status", "Actions"]} />
         {payments.map((payment) => (
-          <div className="grid gap-md border-b border-outline-variant px-lg py-md last:border-b-0 md:grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)_110px_100px_110px_110px_120px]" key={payment.id}>
-            <span className="text-body-sm text-on-surface-variant">#{payment.id}</span>
-            <span className="text-body-sm text-on-surface-variant">{payment.student_name ?? "Student"}</span>
-            <span className="text-body-sm text-on-surface-variant">{payment.instructor_name ?? "Instructor"}</span>
-            <span className="text-body-sm text-on-surface-variant">{money(payment.amount)}</span>
-            <span className="text-body-sm text-on-surface-variant">{money(payment.platform_fee)}</span>
-            <span className="text-body-sm font-medium text-on-surface">{money(payment.total_amount)}</span>
-            <span className="text-body-sm capitalize text-on-surface-variant">{payment.status}</span>
+          <div className="grid gap-md border-b border-[#27272A] px-lg py-md last:border-b-0 md:grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)_110px_100px_110px_110px_120px]" key={payment.id}>
+            <span className="text-body-sm text-zinc-400">#{payment.id}</span>
+            <span className="text-body-sm text-zinc-400">{payment.student_name ?? "Student"}</span>
+            <span className="text-body-sm text-zinc-400">{payment.instructor_name ?? "Instructor"}</span>
+            <span className="text-body-sm text-zinc-400">{money(payment.amount)}</span>
+            <span className="text-body-sm text-zinc-400">{money(payment.platform_fee)}</span>
+            <span className="text-body-sm font-medium text-zinc-100">{money(payment.total_amount)}</span>
+            <span className="text-body-sm capitalize text-zinc-400">{payment.status}</span>
             <span className="flex flex-wrap gap-xs">
               {payment.status === "held" ? (
                 <>
@@ -77,7 +77,7 @@ export function AdminPaymentsPage() {
                   </button>
                 </>
               ) : (
-                <span className="text-body-sm capitalize text-on-surface-variant">{payment.status}</span>
+                <span className="text-body-sm capitalize text-zinc-400">{payment.status}</span>
               )}
             </span>
           </div>
@@ -88,9 +88,9 @@ export function AdminPaymentsPage() {
 }
 
 function Page({ title, description, error, message, loading, empty, children }: { title: string; description: string; error: string; message: string; loading: boolean; empty: boolean; children: ReactNode }) {
-  return <><header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop"><h1 className="text-headline-lg text-on-surface">{title}</h1><p className="mt-xs text-body-sm text-on-surface-variant">{description}</p></header><div className="space-y-lg px-margin-mobile py-lg md:px-margin-desktop">{message ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{message}</p> : null}{error ? <ErrorState message={error} /> : null}{loading ? <LoadingState message={`Loading ${title.toLowerCase()}...`} /> : null}{children}{!loading && empty ? <EmptyState title={`No ${title.toLowerCase()} found`} message="Real platform data will appear here when available." /> : null}</div></>;
+  return <><header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop"><h1 className="text-headline-lg text-zinc-100">{title}</h1><p className="mt-xs text-body-sm text-zinc-400">{description}</p></header><div className="space-y-lg px-margin-mobile py-lg md:px-margin-desktop">{message ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{message}</p> : null}{error ? <ErrorState message={error} /> : null}{loading ? <LoadingState message={`Loading ${title.toLowerCase()}...`} /> : null}{children}{!loading && empty ? <EmptyState title={`No ${title.toLowerCase()} found`} message="Real platform data will appear here when available." /> : null}</div></>;
 }
 
 function Header({ headers }: { headers: string[] }) {
-  return <div className="hidden gap-md border-b border-outline-variant bg-surface-container-low px-lg py-sm md:grid md:grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)_110px_100px_110px_110px_120px]">{headers.map((h) => <span className="text-label-md uppercase text-on-surface-variant" key={h}>{h}</span>)}</div>;
+  return <div className="hidden gap-md border-b border-[#27272A] bg-[#121214] px-lg py-sm md:grid md:grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)_110px_100px_110px_110px_120px]">{headers.map((h) => <span className="text-label-md uppercase text-zinc-400" key={h}>{h}</span>)}</div>;
 }

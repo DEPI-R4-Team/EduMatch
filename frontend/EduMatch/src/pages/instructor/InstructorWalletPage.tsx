@@ -81,9 +81,9 @@ export function InstructorWalletPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
-        <h1 className="text-headline-lg text-on-surface">Wallet</h1>
-        <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
+        <h1 className="text-headline-lg text-zinc-100">Wallet</h1>
+        <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
           Track your earnings, pending payments, and simulated wallet transactions.
         </p>
       </header>
@@ -97,15 +97,15 @@ export function InstructorWalletPage() {
           {walletStats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <article className="rounded-lg border border-outline-variant bg-surface-container p-lg" key={stat.label}>
+              <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg" key={stat.label}>
                 <div className="mb-lg flex items-center justify-between gap-md">
-                  <p className="text-label-md uppercase text-on-surface-variant">{stat.label}</p>
+                  <p className="text-label-md uppercase text-zinc-400">{stat.label}</p>
                   <div className={cn("rounded-md p-sm ring-1", stat.tone)}>
                     <Icon className="size-5" />
                   </div>
                 </div>
-                <p className="text-headline-lg text-on-surface">{stat.value}</p>
-                <p className="mt-xs text-body-sm text-on-surface-variant">{stat.helper}</p>
+                <p className="text-headline-lg text-zinc-100">{stat.value}</p>
+                <p className="mt-xs text-body-sm text-zinc-400">{stat.helper}</p>
               </article>
             );
           })}
@@ -122,35 +122,35 @@ export function InstructorWalletPage() {
           </button>
         </div>
 
-        <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-          <h2 className="text-headline-md text-on-surface">Transaction History</h2>
-          <div className="mt-lg overflow-hidden rounded-md border border-outline-variant">
-            <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1fr)_100px_120px] gap-md border-b border-outline-variant bg-surface-container-low px-lg py-sm md:grid">
-              <span className="text-label-md uppercase text-on-surface-variant">Description</span>
-              <span className="text-label-md uppercase text-on-surface-variant">Status</span>
-              <span className="text-label-md uppercase text-on-surface-variant text-right">Amount</span>
-              <span className="text-label-md uppercase text-on-surface-variant text-right">Date</span>
+        <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+          <h2 className="text-headline-md text-zinc-100">Transaction History</h2>
+          <div className="mt-lg overflow-hidden rounded-md border border-[#27272A]">
+            <div className="hidden grid-cols-[minmax(0,2fr)_minmax(0,1fr)_100px_120px] gap-md border-b border-[#27272A] bg-[#121214] px-lg py-sm md:grid">
+              <span className="text-label-md uppercase text-zinc-400">Description</span>
+              <span className="text-label-md uppercase text-zinc-400">Status</span>
+              <span className="text-label-md uppercase text-zinc-400 text-right">Amount</span>
+              <span className="text-label-md uppercase text-zinc-400 text-right">Date</span>
             </div>
             {transactions.length > 0 ? (
               transactions.map((tx, index) => (
                 <div
                   className={cn(
                     "grid gap-y-xs gap-x-md px-lg py-md md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_100px_120px] md:items-center",
-                    index !== transactions.length - 1 && "border-b border-outline-variant",
+                    index !== transactions.length - 1 && "border-b border-[#27272A]",
                   )}
                   key={tx.id}
                 >
                   <div className="flex items-center gap-sm">
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface-container-high text-on-surface-variant">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#27272A] text-zinc-400">
                       {tx.type === "withdraw" || tx.type === "refund" ? <ArrowUpFromLine className="size-4" /> : <ArrowDownToLine className="size-4" />}
                     </div>
-                    <p className="truncate text-body-sm capitalize text-on-surface">{tx.type} transaction</p>
+                    <p className="truncate text-body-sm capitalize text-zinc-100">{tx.type} transaction</p>
                   </div>
-                  <p className="text-body-sm capitalize text-on-surface-variant">{tx.status}</p>
-                  <p className={cn("text-body-sm font-medium md:text-right", typeClasses[tx.type] ?? "text-on-surface")}>
+                  <p className="text-body-sm capitalize text-zinc-400">{tx.status}</p>
+                  <p className={cn("text-body-sm font-medium md:text-right", typeClasses[tx.type] ?? "text-zinc-100")}>
                     {formatMoney(tx.amount)}
                   </p>
-                  <p className="text-body-sm text-on-surface-variant md:text-right">{formatDate(tx.created_at)}</p>
+                  <p className="text-body-sm text-zinc-400 md:text-right">{formatDate(tx.created_at)}</p>
                 </div>
               ))
             ) : (

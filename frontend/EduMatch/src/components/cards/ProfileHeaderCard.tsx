@@ -25,7 +25,7 @@ function formatDate(value: string | undefined) {
 
 export function ProfileHeaderCard({ user, onChangePhoto, onEditProfile }: ProfileHeaderCardProps) {
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex flex-col gap-lg lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-lg">
           <div className="flex size-20 shrink-0 items-center justify-center rounded-full bg-primary text-headline-md text-on-primary ring-4 ring-primary/20">
@@ -33,7 +33,7 @@ export function ProfileHeaderCard({ user, onChangePhoto, onEditProfile }: Profil
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-sm">
-              <h2 className="text-headline-lg-mobile text-on-surface md:text-headline-lg">
+              <h2 className="text-headline-lg-mobile text-zinc-100 md:text-headline-lg">
                 {user?.full_name ?? "Not added yet"}
               </h2>
               <span className="rounded-full bg-primary/15 px-sm py-xs text-label-md uppercase text-primary ring-1 ring-primary/25">
@@ -43,8 +43,8 @@ export function ProfileHeaderCard({ user, onChangePhoto, onEditProfile }: Profil
                 {user?.status ?? "active"}
               </span>
             </div>
-            <p className="mt-xs text-body-sm text-on-surface-variant">{user?.email ?? "Not added yet"}</p>
-            <p className="mt-xs text-body-sm text-on-surface-variant">Joined {formatDate(user?.created_at)}</p>
+            <p className="mt-xs text-body-sm text-zinc-400">{user?.email ?? "Not added yet"}</p>
+            <p className="mt-xs text-body-sm text-zinc-400">Joined {formatDate(user?.created_at)}</p>
           </div>
         </div>
 

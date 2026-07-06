@@ -4,6 +4,7 @@ import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from "@/services/api";
 import { getCurrentUser, loginUser, logoutUser, registerUser, updateMyProfile } from "@/services/auth.service";
 import type { AuthResponse, LoginPayload, RegisterPayload, User, UserProfileUpdatePayload, UserRole } from "@/types/user";
 import { ROUTES } from "@/lib/routes";
+import { LoadingPage } from "@/components/LoadingScreen";
 
 type AuthContextValue = {
   user: User | null;
@@ -135,6 +136,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }),
     [clearAuth, isLoading, login, refreshUser, register, token, updateProfile, user],
   );
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

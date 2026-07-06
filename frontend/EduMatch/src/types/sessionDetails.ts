@@ -13,6 +13,7 @@ export type SessionDetailsData = {
   instructorRating: number;
   instructorReviews: number;
   requestTitle: string;
+  requestType: string | null;
   sessionType: SessionType;
   sessionMode: SessionMode;
   status: SessionStatus;

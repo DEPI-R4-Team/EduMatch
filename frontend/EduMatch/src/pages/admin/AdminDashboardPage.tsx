@@ -68,12 +68,12 @@ export function AdminDashboardPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-6 py-4">
         <div className="flex flex-col gap-lg lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
-            <p className="text-label-md uppercase text-primary">Admin Dashboard</p>
-            <h1 className="mt-xs text-headline-lg text-on-surface">Platform overview</h1>
-            <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">Read-only overview of real platform activity.</p>
+            <p className="text-label-md uppercase text-[#8b5cf6]">Admin Dashboard</p>
+            <h1 className="mt-xs text-headline-lg text-zinc-100">Platform overview</h1>
+            <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">Read-only overview of real platform activity.</p>
           </div>
 
           <DashboardTopbarActions />
@@ -88,28 +88,28 @@ export function AdminDashboardPage() {
               {cards.map((card) => {
                 const Icon = card.icon;
                 return (
-                  <article className="rounded-lg border border-outline-variant bg-surface-container p-lg" key={card.label}>
+                  <article className="relative overflow-hidden rounded-2xl border border-[#27272A] bg-[#18181B] p-6 shadow-lg" key={card.label}>
                     <div className="mb-lg flex items-center justify-between">
-                      <p className="text-label-md uppercase text-on-surface-variant">{card.label}</p>
-                      <div className="rounded-md bg-primary/15 p-sm text-primary"><Icon className="size-5" /></div>
+                      <p className="text-label-md uppercase text-zinc-400">{card.label}</p>
+                      <div className="w-10 h-10 rounded-xl bg-[#09090B] border border-[#27272A] flex items-center justify-center text-[#8b5cf6]"><Icon className="size-5" /></div>
                     </div>
-                    <p className="text-headline-lg text-on-surface">{card.value}</p>
+                    <p className="text-2xl font-bold text-zinc-100">{card.value}</p>
                   </article>
                 );
               })}
             </section>
             <section className="grid gap-md lg:grid-cols-3">
-              <article className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-                <p className="text-label-md uppercase text-secondary">Wallet pending</p>
-                <p className="mt-xs text-headline-md text-on-surface">{money(stats.total_wallet_pending_balance)}</p>
+              <article className="relative overflow-hidden rounded-2xl border border-[#27272A] bg-[#18181B] p-6 shadow-lg">
+                <p className="text-label-md uppercase text-zinc-400">Wallet pending</p>
+                <p className="mt-xs text-2xl font-bold text-zinc-100">{money(stats.total_wallet_pending_balance)}</p>
               </article>
-              <article className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-                <p className="text-label-md uppercase text-secondary">Wallet available</p>
-                <p className="mt-xs text-headline-md text-on-surface">{money(stats.total_wallet_available_balance)}</p>
+              <article className="relative overflow-hidden rounded-2xl border border-[#27272A] bg-[#18181B] p-6 shadow-lg">
+                <p className="text-label-md uppercase text-zinc-400">Wallet available</p>
+                <p className="mt-xs text-2xl font-bold text-zinc-100">{money(stats.total_wallet_available_balance)}</p>
               </article>
-              <article className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-                <p className="text-label-md uppercase text-secondary">Platform revenue</p>
-                <p className="mt-xs text-headline-md text-on-surface">{money(stats.total_platform_revenue)}</p>
+              <article className="relative overflow-hidden rounded-2xl border border-[#27272A] bg-[#18181B] p-6 shadow-lg">
+                <p className="text-label-md uppercase text-zinc-400">Platform revenue</p>
+                <p className="mt-xs text-2xl font-bold text-zinc-100">{money(stats.total_platform_revenue)}</p>
               </article>
             </section>
             <section className="grid gap-lg xl:grid-cols-3">
@@ -128,10 +128,10 @@ export function AdminDashboardPage() {
 
 function Recent({ title, rows }: { title: string; rows: string[] }) {
   return (
-    <article className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-      <h2 className="text-headline-md text-on-surface">{title}</h2>
+    <article className="relative overflow-hidden rounded-2xl border border-[#27272A] bg-[#18181B] p-6 shadow-lg">
+      <h2 className="text-headline-md text-zinc-100">{title}</h2>
       <div className="mt-md space-y-sm">
-        {rows.length > 0 ? rows.map((row) => <p className="rounded-md bg-surface-container-low p-sm text-body-sm text-on-surface-variant" key={row}>{row}</p>) : <p className="text-body-sm text-on-surface-variant">No data yet.</p>}
+        {rows.length > 0 ? rows.map((row) => <p className="rounded-xl border border-[#27272A] bg-[#09090B]/70 p-sm text-body-sm text-zinc-300 transition-all duration-300 hover:border-[#8b5cf6]/30 hover:bg-[#09090B] hover:shadow-[0_4px_20px_rgba(139,92,246,0.05)]" key={row}>{row}</p>) : <p className="text-body-sm text-zinc-400">No data yet.</p>}
       </div>
     </article>
   );

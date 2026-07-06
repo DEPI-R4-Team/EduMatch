@@ -28,10 +28,16 @@ export type GroupRequest = {
   base_price: string | null;
   min_price_per_student: string | null;
   current_price_per_student: string | null;
+  final_price_per_student: string | null;
+  price_locked: boolean;
   max_participants: number | null;
   min_participants: number | null;
   active_participants_count: number;
   price_if_you_join: string | null;
+  paid_participants_count: number;
+  total_required_participants: number;
+  fully_funded: boolean;
+  current_user_payment_status: string | null;
   status: string;
   accepted_instructor_id: number | null;
   accepted_instructor_name: string | null;
@@ -57,10 +63,17 @@ export type GroupRequestCreatePayload = {
 };
 
 export type GroupPricePreview = {
+  base_price: string | null;
+  min_price_per_student: string | null;
   active_participants_count: number;
   max_participants: number | null;
   current_price_per_student: string | null;
+  final_price_per_student: string | null;
+  price_locked: boolean;
   price_if_you_join: string | null;
+  paid_participants_count: number;
+  total_required_participants: number;
+  fully_funded: boolean;
 };
 
 export type GroupPaymentResponse = {

@@ -143,10 +143,10 @@ export function InstructorProfilePage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <BackButton className="mb-md" fallback="/instructor/dashboard" />
-        <h1 className="text-headline-lg text-on-surface">Profile</h1>
-        <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+        <h1 className="text-headline-lg text-zinc-100">Profile</h1>
+        <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
           Manage your instructor profile and credentials.
         </p>
       </header>
@@ -157,7 +157,7 @@ export function InstructorProfilePage() {
 
         <div className="grid gap-lg xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-lg">
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
               <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-center gap-md">
                   <div className="flex size-16 items-center justify-center rounded-full bg-primary/15 text-headline-md font-medium text-primary">
@@ -165,11 +165,11 @@ export function InstructorProfilePage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-sm">
-                      <h2 className="text-headline-md text-on-surface">{valueOrMissing(user?.full_name)}</h2>
+                      <h2 className="text-headline-md text-zinc-100">{valueOrMissing(user?.full_name)}</h2>
                       {profile?.verification_status === "verified" ? <BadgeCheck className="size-5 text-primary" /> : null}
                     </div>
-                    <p className="text-body-sm text-on-surface-variant">{valueOrMissing(user?.email)}</p>
-                    <p className="text-body-sm capitalize text-on-surface-variant">
+                    <p className="text-body-sm text-zinc-400">{valueOrMissing(user?.email)}</p>
+                    <p className="text-body-sm capitalize text-zinc-400">
                       {profile?.verification_status?.replaceAll("_", " ") ?? "Not added yet"}
                     </p>
                   </div>
@@ -182,8 +182,8 @@ export function InstructorProfilePage() {
             </section>
 
             {isEditing ? (
-              <form className="rounded-lg border border-outline-variant bg-surface-container p-lg" onSubmit={(event) => void handleSubmit(event)}>
-                <h2 className="text-headline-md text-on-surface">Edit Instructor Profile</h2>
+              <form className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg" onSubmit={(event) => void handleSubmit(event)}>
+                <h2 className="text-headline-md text-zinc-100">Edit Instructor Profile</h2>
                 <div className="mt-lg grid gap-md md:grid-cols-2">
                   <Field label="Full Name" value={form.full_name} onChange={(value) => updateField("full_name", value)} required />
                   <Field label="Email" type="email" value={form.email} onChange={(value) => updateField("email", value)} required />
@@ -193,7 +193,7 @@ export function InstructorProfilePage() {
                   <Field label="Price Per Session" value={form.price_per_session} onChange={(value) => updateField("price_per_session", value)} />
                   <Field label="Profile Image URL" value={form.profile_image} onChange={(value) => updateField("profile_image", value)} />
                 </div>
-                <label className="mt-md flex items-center justify-between gap-md rounded-md border border-outline-variant bg-surface-container-low p-md text-body-sm text-on-surface">
+                <label className="mt-md flex items-center justify-between gap-md rounded-md border border-[#27272A] bg-[#121214] p-md text-body-sm text-zinc-100">
                   <span>Available for instant requests</span>
                   <input
                     checked={form.is_available_for_instant}
@@ -203,23 +203,23 @@ export function InstructorProfilePage() {
                   />
                 </label>
                 <label className="mt-md block space-y-sm">
-                  <span className="text-body-sm font-medium text-on-surface">Experience</span>
+                  <span className="text-body-sm font-medium text-zinc-100">Experience</span>
                   <textarea
-                    className="min-h-28 w-full resize-y rounded-md border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="min-h-28 w-full resize-y rounded-md border border-[#27272A] bg-[#121214] px-md py-sm text-body-sm text-zinc-100 outline-none focus-visible:border-[#8b5cf6] focus-visible:ring-3 focus-visible:ring-[#8b5cf6]/30"
                     onChange={(event) => updateField("experience", event.target.value)}
                     value={form.experience}
                   />
                 </label>
                 <label className="mt-md block space-y-sm">
-                  <span className="text-body-sm font-medium text-on-surface">Bio</span>
+                  <span className="text-body-sm font-medium text-zinc-100">Bio</span>
                   <textarea
-                    className="min-h-32 w-full resize-y rounded-md border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    className="min-h-32 w-full resize-y rounded-md border border-[#27272A] bg-[#121214] px-md py-sm text-body-sm text-zinc-100 outline-none focus-visible:border-[#8b5cf6] focus-visible:ring-3 focus-visible:ring-[#8b5cf6]/30"
                     onChange={(event) => updateField("bio", event.target.value)}
                     value={form.bio}
                   />
                 </label>
                 <div className="mt-lg flex flex-wrap justify-end gap-sm">
-                  <button className="inline-flex h-10 items-center justify-center rounded-md border border-outline-variant px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface" onClick={cancelEditing} type="button">
+                  <button className="inline-flex h-10 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100" onClick={cancelEditing} type="button">
                     Cancel
                   </button>
                   <button className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90 disabled:opacity-60" disabled={isSaving} type="submit">
@@ -229,29 +229,29 @@ export function InstructorProfilePage() {
               </form>
             ) : null}
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
               <div className="flex items-center justify-between gap-md">
-                <h2 className="text-headline-md text-on-surface">About</h2>
+                <h2 className="text-headline-md text-zinc-100">About</h2>
                 <button className="inline-flex h-9 items-center justify-center gap-xs rounded-md border border-secondary/40 px-md text-body-sm font-medium text-secondary transition hover:bg-secondary/10" onClick={startEditing} type="button">
                   <Pencil className="size-4" />
                   Edit
                 </button>
               </div>
-              <p className="mt-md text-body-sm leading-relaxed text-on-surface-variant">{valueOrMissing(profile?.bio)}</p>
+              <p className="mt-md text-body-sm leading-relaxed text-zinc-400">{valueOrMissing(profile?.bio)}</p>
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Specialization</h2>
-              <p className="mt-md text-body-sm text-on-surface-variant">{valueOrMissing(profile?.specialization)}</p>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Specialization</h2>
+              <p className="mt-md text-body-sm text-zinc-400">{valueOrMissing(profile?.specialization)}</p>
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Experience</h2>
-              <p className="mt-md text-body-sm leading-relaxed text-on-surface-variant">{valueOrMissing(profile?.experience)}</p>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Experience</h2>
+              <p className="mt-md text-body-sm leading-relaxed text-zinc-400">{valueOrMissing(profile?.experience)}</p>
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Skills</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Skills</h2>
               {skills.length > 0 ? (
                 <div className="mt-md flex flex-wrap gap-sm">
                   {skills.map((skill) => (
@@ -261,22 +261,22 @@ export function InstructorProfilePage() {
                   ))}
                 </div>
               ) : (
-                <p className="mt-md text-body-sm text-on-surface-variant">Not added yet</p>
+                <p className="mt-md text-body-sm text-zinc-400">Not added yet</p>
               )}
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
               <div className="flex items-start gap-md">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary/15 text-secondary">
                   <ShieldCheck className="size-5" />
                 </div>
                 <div>
-                  <h2 className="text-headline-md text-on-surface">Security</h2>
-                  <p className="mt-xs text-body-sm text-on-surface-variant">Password management is not connected yet.</p>
+                  <h2 className="text-headline-md text-zinc-100">Security</h2>
+                  <p className="mt-xs text-body-sm text-zinc-400">Password management is not connected yet.</p>
                 </div>
               </div>
               <div className="mt-lg space-y-sm">
-                <button className="flex h-10 w-full items-center gap-sm rounded-md border border-outline-variant bg-surface-container-low px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface" onClick={() => setNotice("Password change is not implemented yet.")} type="button">
+                <button className="flex h-10 w-full items-center gap-sm rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100" onClick={() => setNotice("Password change is not implemented yet.")} type="button">
                   <LockKeyhole className="size-4" />
                   Change Password
                 </button>
@@ -285,38 +285,38 @@ export function InstructorProfilePage() {
           </div>
 
           <aside className="space-y-lg">
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Quick Stats</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Quick Stats</h2>
               <div className="mt-md space-y-md">
                 <div className="flex items-center gap-sm text-body-sm">
                   <Star className="size-4 fill-tertiary text-tertiary" />
-                  <span className="text-on-surface">{profile?.rating ?? "0.0"} rating</span>
+                  <span className="text-zinc-100">{profile?.rating ?? "0.0"} rating</span>
                 </div>
                 <div className="flex items-center gap-sm text-body-sm">
                   <CircleDollarSign className="size-4 text-primary" />
-                  <span className="text-on-surface">{valueOrMissing(profile?.price_per_session)} per session</span>
+                  <span className="text-zinc-100">{valueOrMissing(profile?.price_per_session)} per session</span>
                 </div>
               </div>
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Availability</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Availability</h2>
               <div className="mt-md flex items-center justify-between">
                 <div className="flex items-center gap-sm text-body-sm">
                   <Zap className="size-4 text-tertiary" />
-                  <span className="text-on-surface">Instant Availability</span>
+                  <span className="text-zinc-100">Instant Availability</span>
                 </div>
-                <span className={cn("rounded-full px-sm py-xs text-label-md", profile?.is_available_for_instant ? "bg-emerald-400/15 text-emerald-300" : "bg-on-surface-variant/15 text-on-surface-variant")}>
+                <span className={cn("rounded-full px-sm py-xs text-label-md", profile?.is_available_for_instant ? "bg-emerald-400/15 text-emerald-300" : "bg-on-surface-variant/15 text-zinc-400")}>
                   {profile?.is_available_for_instant ? "Active" : "Inactive"}
                 </span>
               </div>
             </section>
 
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Verification</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Verification</h2>
               <div className="mt-md flex items-center gap-sm">
                 <BadgeCheck className="size-5 text-primary" />
-                <span className="text-body-sm capitalize text-on-surface">
+                <span className="text-body-sm capitalize text-zinc-100">
                   {profile?.verification_status?.replaceAll("_", " ") ?? "Not added yet"}
                 </span>
               </div>
@@ -343,9 +343,9 @@ function Field({
 }) {
   return (
     <label className="space-y-sm">
-      <span className="text-body-sm font-medium text-on-surface">{label}</span>
+      <span className="text-body-sm font-medium text-zinc-100">{label}</span>
       <Input
-        className="h-11 border-outline-variant bg-surface-container-low text-on-surface"
+        className="h-11 border-[#27272A] bg-[#121214] text-zinc-100"
         onChange={(event) => onChange(event.target.value)}
         required={required}
         type={type}

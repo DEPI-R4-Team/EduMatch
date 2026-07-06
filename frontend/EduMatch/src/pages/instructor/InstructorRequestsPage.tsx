@@ -88,20 +88,20 @@ export function InstructorRequestsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <div className="flex flex-col gap-md xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-headline-lg text-on-surface">Browse Requests</h1>
-            <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+            <h1 className="text-headline-lg text-zinc-100">Browse Requests</h1>
+            <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
               Review open student learning requests and send applications.
             </p>
           </div>
 
           <div className="flex w-full flex-col gap-sm sm:flex-row xl:w-auto">
             <div className="relative min-w-0 flex-1 xl:w-[280px]">
-              <Search className="pointer-events-none absolute left-md top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" />
+              <Search className="pointer-events-none absolute left-md top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
               <Input
-                className="h-10 border-outline-variant bg-surface-container pl-10 text-on-surface"
+                className="h-10 border-[#27272A] bg-[#18181B] pl-10 text-zinc-100"
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
@@ -112,7 +112,7 @@ export function InstructorRequestsPage() {
             </div>
             <div className="relative">
               <button
-                className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-outline-variant bg-surface-container px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+                className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-[#27272A] bg-[#18181B] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
                 onClick={() => setShowFilterMenu((prev) => !prev)}
                 type="button"
               >
@@ -120,14 +120,14 @@ export function InstructorRequestsPage() {
                 Filter
               </button>
               {showFilterMenu && (
-                <div className="absolute right-0 top-12 z-20 w-44 rounded-md border border-outline-variant bg-surface-container p-xs shadow-lg">
+                <div className="absolute right-0 top-12 z-20 w-44 rounded-md border border-[#27272A] bg-[#18181B] p-xs shadow-lg">
                   {filterOptions.map((option) => (
                     <button
                       className={cn(
                         "block w-full rounded-md px-sm py-xs text-left text-body-sm transition",
                         activeFilter === option.value
                           ? "bg-primary/10 text-primary"
-                          : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface",
+                          : "text-zinc-400 hover:bg-[#27272A] hover:text-zinc-100",
                       )}
                       key={option.value}
                       onClick={() => {
@@ -151,17 +151,17 @@ export function InstructorRequestsPage() {
         {message ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{message}</p> : null}
         {error ? <p className="rounded-md border border-error/25 bg-error/10 px-md py-sm text-body-sm text-error">{error}</p> : null}
 
-        <div className="overflow-hidden rounded-lg border border-outline-variant bg-surface-container">
-          <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_120px_130px_minmax(280px,1fr)] gap-md border-b border-outline-variant bg-surface-container-low px-lg py-sm md:grid">
-            <span className="text-label-md uppercase text-on-surface-variant">Request</span>
-            <span className="text-label-md uppercase text-on-surface-variant">Student</span>
-            <span className="text-label-md uppercase text-on-surface-variant">Status</span>
-            <span className="text-label-md uppercase text-on-surface-variant">Budget / Group</span>
-            <span className="text-label-md uppercase text-on-surface-variant text-right">Apply</span>
+        <div className="overflow-hidden rounded-lg border border-[#27272A] bg-[#18181B]">
+          <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_120px_130px_minmax(280px,1fr)] gap-md border-b border-[#27272A] bg-[#121214] px-lg py-sm md:grid">
+            <span className="text-label-md uppercase text-zinc-400">Request</span>
+            <span className="text-label-md uppercase text-zinc-400">Student</span>
+            <span className="text-label-md uppercase text-zinc-400">Status</span>
+            <span className="text-label-md uppercase text-zinc-400">Budget / Group</span>
+            <span className="text-label-md uppercase text-zinc-400 text-right">Apply</span>
           </div>
 
           {loading ? (
-            <div className="p-xl text-center text-body-sm text-on-surface-variant">Loading requests...</div>
+            <div className="p-xl text-center text-body-sm text-zinc-400">Loading requests...</div>
           ) : paginatedRequests.length > 0 ? (
             paginatedRequests.map((request, index) => {
               const state = applyState[request.id] ?? { message: "", price: "" };
@@ -169,29 +169,29 @@ export function InstructorRequestsPage() {
                 <div
                   className={cn(
                     "grid gap-y-sm gap-x-md px-lg py-md md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_120px_130px_minmax(280px,1fr)] md:items-center",
-                    index !== paginatedRequests.length - 1 && "border-b border-outline-variant",
+                    index !== paginatedRequests.length - 1 && "border-b border-[#27272A]",
                   )}
                   key={request.id}
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-xs">
-                      <p className="truncate text-body-md font-medium text-on-surface">{request.title}</p>
+                      <p className="truncate text-body-md font-medium text-zinc-100">{request.title}</p>
                       {request.request_type === "group" ? (
                         <span className="rounded-full bg-secondary/15 px-xs py-0.5 text-[10px] font-semibold uppercase text-secondary">Group</span>
                       ) : null}
                     </div>
-                    <p className="text-body-sm text-on-surface-variant">{request.subject}</p>
+                    <p className="text-body-sm text-zinc-400">{request.subject}</p>
                   </div>
 
                   <div className="flex items-center gap-sm">
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-label-md font-medium text-primary">
                       {initials(request.student_name)}
                     </span>
-                    <span className="truncate text-body-sm text-on-surface">{request.student_name ?? "Student"}</span>
+                    <span className="truncate text-body-sm text-zinc-100">{request.student_name ?? "Student"}</span>
                   </div>
 
                   <RequestStatusBadge status={request.status} />
-                  <div className="text-body-sm text-on-surface-variant">
+                  <div className="text-body-sm text-zinc-400">
                     <p>{request.request_type === "group" ? request.current_price_per_student ?? request.final_price_per_student ?? request.base_price ?? "Not set" : request.base_price ?? "Not set"} EGP</p>
                     {request.request_type === "group" ? (
                       <p className="text-label-md">{request.max_participants ?? request.max_students ?? "-"} max participants</p>
@@ -200,7 +200,7 @@ export function InstructorRequestsPage() {
 
                   <div className="grid gap-xs">
                     <Input
-                      className="h-9 border-outline-variant bg-surface-container-low text-on-surface"
+                      className="h-9 border-[#27272A] bg-[#121214] text-zinc-100"
                       onChange={(e) =>
                         setApplyState((current) => ({
                           ...current,
@@ -212,7 +212,7 @@ export function InstructorRequestsPage() {
                     />
                     <div className="flex gap-xs">
                       <Input
-                        className="h-9 border-outline-variant bg-surface-container-low text-on-surface"
+                        className="h-9 border-[#27272A] bg-[#121214] text-zinc-100"
                         onChange={(e) =>
                           setApplyState((current) => ({
                             ...current,
@@ -239,29 +239,29 @@ export function InstructorRequestsPage() {
             })
           ) : (
             <div className="p-xl text-center">
-              <h3 className="text-headline-md text-on-surface">No requests found</h3>
-              <p className="mt-sm text-body-sm text-on-surface-variant">No open student requests match your filter.</p>
+              <h3 className="text-headline-md text-zinc-100">No requests found</h3>
+              <p className="mt-sm text-body-sm text-zinc-400">No open student requests match your filter.</p>
             </div>
           )}
 
           {filteredRequests.length > 0 && (
-            <div className="flex flex-col items-center justify-between gap-sm border-t border-outline-variant px-lg py-md sm:flex-row">
-              <p className="text-body-sm text-on-surface-variant">
+            <div className="flex flex-col items-center justify-between gap-sm border-t border-[#27272A] px-lg py-md sm:flex-row">
+              <p className="text-body-sm text-zinc-400">
                 Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredRequests.length)} to{" "}
                 {Math.min(currentPage * ITEMS_PER_PAGE, filteredRequests.length)} of {filteredRequests.length} requests
               </p>
               <div className="flex items-center gap-xs">
                 <button
-                  className="flex size-8 items-center justify-center rounded-md text-on-surface-variant transition hover:bg-surface-container-high disabled:opacity-40"
+                  className="flex size-8 items-center justify-center rounded-md text-zinc-400 transition hover:bg-[#27272A] disabled:opacity-40"
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((p) => p - 1)}
                   type="button"
                 >
                   &lsaquo;
                 </button>
-                <span className="px-sm text-body-sm text-on-surface-variant">{currentPage} / {totalPages}</span>
+                <span className="px-sm text-body-sm text-zinc-400">{currentPage} / {totalPages}</span>
                 <button
-                  className="flex size-8 items-center justify-center rounded-md text-on-surface-variant transition hover:bg-surface-container-high disabled:opacity-40"
+                  className="flex size-8 items-center justify-center rounded-md text-zinc-400 transition hover:bg-[#27272A] disabled:opacity-40"
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((p) => p + 1)}
                   type="button"

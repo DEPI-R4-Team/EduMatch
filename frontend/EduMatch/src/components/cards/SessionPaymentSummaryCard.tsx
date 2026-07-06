@@ -15,26 +15,26 @@ export function SessionPaymentSummaryCard({ session }: SessionPaymentSummaryCard
   ];
 
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex items-center gap-sm">
         <WalletCards className="size-5 text-secondary" />
-        <h2 className="text-headline-md text-on-surface">Payment Summary</h2>
+        <h2 className="text-headline-md text-zinc-100">Payment Summary</h2>
       </div>
 
       <div className="mt-lg space-y-sm">
         {rows.map((row) => (
           <div className="flex items-center justify-between gap-md text-body-sm" key={row.label}>
-            <span className="text-on-surface-variant">{row.label}</span>
-            <span className="font-medium text-on-surface">{row.value}</span>
+            <span className="text-zinc-400">{row.label}</span>
+            <span className="font-medium text-zinc-100">{row.value}</span>
           </div>
         ))}
-        <div className="flex items-center justify-between gap-md border-t border-outline-variant pt-sm text-body-sm">
-          <span className="text-on-surface-variant">Current Status</span>
+        <div className="flex items-center justify-between gap-md border-t border-[#27272A] pt-sm text-body-sm">
+          <span className="text-zinc-400">Current Status</span>
           <PaymentStatusBadge status={session.paymentStatus} />
         </div>
       </div>
 
-      <p className="mt-lg rounded-md border border-outline-variant bg-surface-container-low p-md text-body-sm text-on-surface-variant">
+      <p className="mt-lg rounded-md border border-[#27272A] bg-[#121214] p-md text-body-sm text-zinc-400">
         Your payment is held by the platform and will be released to the instructor after the session is completed and confirmed.
       </p>
 

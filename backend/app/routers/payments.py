@@ -68,6 +68,8 @@ def pay_for_session(
     )
     if session is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found.")
+    if session.request is not None and session.request.request_type == "group":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Use the group payment endpoint for group sessions.")
     if session.student_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot pay for this session.")
     if session.request is None or session.request.status != "waiting_payment":
@@ -164,11 +166,18 @@ def get_payment_by_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PaymentDetailResponse:
+    session = db.scalar(
+        select(LearningSession)
+        .where(LearningSession.id == session_id)
+        .options(selectinload(LearningSession.request))
+    )
+    if session is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found.")
+    statement = select(Payment).where(Payment.session_id == session_id)
+    if session.request is not None and session.request.request_type == "group" and current_user.role == "student":
+        statement = statement.where(Payment.student_id == current_user.id)
     payment = db.scalar(
-        select(Payment)
-        .where(Payment.session_id == session_id)
-        .order_by(Payment.created_at.desc())
-        .options(
+        statement.order_by(Payment.created_at.desc()).options(
             selectinload(Payment.session),
             selectinload(Payment.request),
             selectinload(Payment.student),

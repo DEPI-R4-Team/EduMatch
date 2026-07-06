@@ -84,15 +84,15 @@ export function Navbar() {
           </Link>
 
           <div className="hidden lg:flex gap-6 items-center">
-            <a
-              href="#"
+            <Link
+              to={ROUTES.HOME}
               className={cn(
                 "landing-nav-link text-body-sm font-bold",
                 activeSection === "" && "is-active",
               )}
             >
               Home
-            </a>
+            </Link>
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}

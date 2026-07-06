@@ -31,9 +31,9 @@ export function InstructorSettingsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
-        <h1 className="text-headline-lg text-on-surface">Settings</h1>
-        <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
+        <h1 className="text-headline-lg text-zinc-100">Settings</h1>
+        <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
           Manage local dashboard preferences for this academic version.
         </p>
       </header>
@@ -45,8 +45,8 @@ export function InstructorSettingsPage() {
           </p>
         )}
 
-        <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-          <h2 className="text-headline-md text-on-surface">Notifications</h2>
+        <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+          <h2 className="text-headline-md text-zinc-100">Notifications</h2>
           <div className="mt-lg space-y-sm">
             {([
               ["newApplications", "New student applications"],
@@ -57,7 +57,7 @@ export function InstructorSettingsPage() {
               ["marketingEmails", "Academic newsletter"],
             ] as const).map(([key, label]) => (
               <label
-                className="flex items-center justify-between gap-md rounded-md border border-outline-variant bg-surface-container-low p-md text-body-sm text-on-surface"
+                className="flex items-center justify-between gap-md rounded-md border border-[#27272A] bg-[#121214] p-md text-body-sm text-zinc-100"
                 key={key}
               >
                 <span>{label}</span>
@@ -72,9 +72,9 @@ export function InstructorSettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-          <h2 className="text-headline-md text-on-surface">Theme</h2>
-          <p className="mt-sm text-body-sm text-on-surface-variant">
+        <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+          <h2 className="text-headline-md text-zinc-100">Theme</h2>
+          <p className="mt-sm text-body-sm text-zinc-400">
             Dark mode is kept as the default project theme.
           </p>
         </section>
@@ -88,7 +88,7 @@ export function InstructorSettingsPage() {
             Save Settings
           </button>
           <button
-            className="inline-flex h-10 items-center justify-center rounded-md border border-outline-variant px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
             onClick={handleCancel}
             type="button"
           >

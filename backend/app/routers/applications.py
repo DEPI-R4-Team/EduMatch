@@ -7,7 +7,7 @@ from app.dependencies.auth import require_roles
 from app.models import Application, GroupParticipant, LearningRequest, Session as LearningSession, User
 from app.schemas.application_schema import ApplicationCreate, ApplicationDecisionResponse, ApplicationResponse
 from app.schemas.session_schema import SessionResponse
-from app.services.group_request_service import get_active_participants
+from app.services.group_request_service import get_active_participants, lock_group_request_price
 from app.services.notification_service import create_notification, create_notifications
 
 router = APIRouter(prefix="/applications", tags=["applications"])
@@ -166,6 +166,8 @@ def accept_application(
 
     request.status = "waiting_payment"
     request.accepted_instructor_id = application.instructor_id
+    if request.request_type == "group":
+        lock_group_request_price(db, request)
     session = LearningSession(
         request_id=request.id,
         student_id=request.student_id,
@@ -173,10 +175,8 @@ def accept_application(
         session_mode=request.session_mode,
         session_type=request.session_type,
         scheduled_at=request.preferred_datetime,
-        status="ready",
+        status="waiting_payment" if request.request_type == "group" else "ready",
     )
-    if request.request_type == "group":
-        session.status = "ready"
     db.add(session)
     db.flush()
     create_notification(

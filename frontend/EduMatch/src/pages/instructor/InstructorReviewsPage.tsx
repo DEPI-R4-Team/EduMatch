@@ -65,9 +65,9 @@ export function InstructorReviewsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
-        <h1 className="text-headline-lg text-on-surface">Reviews</h1>
-        <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
+        <h1 className="text-headline-lg text-zinc-100">Reviews</h1>
+        <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
           Student ratings and feedback from completed sessions.
         </p>
       </header>
@@ -77,17 +77,17 @@ export function InstructorReviewsPage() {
         {loading ? <LoadingState message="Loading reviews..." /> : null}
 
         <div className="grid gap-lg lg:grid-cols-[300px_minmax(0,1fr)]">
-          <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+          <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
             <div className="text-center">
-              <p className="text-display-lg text-on-surface">{reviews.length > 0 ? overallRating.toFixed(1) : "0.0"}</p>
+              <p className="text-display-lg text-zinc-100">{reviews.length > 0 ? overallRating.toFixed(1) : "0.0"}</p>
               <StarRating rating={Math.round(overallRating)} size="size-5" />
-              <p className="mt-sm text-body-sm text-on-surface-variant">Based on {reviews.length} reviews</p>
+              <p className="mt-sm text-body-sm text-zinc-400">Based on {reviews.length} reviews</p>
             </div>
 
             <div className="mt-lg space-y-sm">
               {ratingDistribution.map((entry) => (
                 <div className="flex items-center gap-sm" key={entry.stars}>
-                  <span className="w-4 text-right text-body-sm text-on-surface-variant">{entry.stars}</span>
+                  <span className="w-4 text-right text-body-sm text-zinc-400">{entry.stars}</span>
                   <Star className="size-3.5 fill-tertiary text-tertiary" />
                   <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-variant">
                     <div
@@ -95,7 +95,7 @@ export function InstructorReviewsPage() {
                       style={{ width: `${reviews.length > 0 ? (entry.count / reviews.length) * 100 : 0}%` }}
                     />
                   </div>
-                  <span className="w-6 text-right text-body-sm text-on-surface-variant">{entry.count}</span>
+                  <span className="w-6 text-right text-body-sm text-zinc-400">{entry.count}</span>
                 </div>
               ))}
             </div>
@@ -104,23 +104,23 @@ export function InstructorReviewsPage() {
           <section className="space-y-md">
             {reviews.length > 0 ? (
               reviews.map((review) => (
-                <article className="rounded-lg border border-outline-variant bg-surface-container p-lg" key={review.id}>
+                <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg" key={review.id}>
                   <div className="flex items-start justify-between gap-md">
                     <div className="flex items-center gap-sm">
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-body-sm font-medium text-primary">
                         {initials(review.student_name)}
                       </span>
                       <div>
-                        <p className="text-body-md font-medium text-on-surface">{review.student_name ?? "Student"}</p>
-                        <p className="text-body-sm text-on-surface-variant">{review.session_title ?? "Learning Session"}</p>
+                        <p className="text-body-md font-medium text-zinc-100">{review.student_name ?? "Student"}</p>
+                        <p className="text-body-sm text-zinc-400">{review.session_title ?? "Learning Session"}</p>
                       </div>
                     </div>
-                    <p className="shrink-0 text-body-sm text-on-surface-variant">{formatDate(review.created_at)}</p>
+                    <p className="shrink-0 text-body-sm text-zinc-400">{formatDate(review.created_at)}</p>
                   </div>
                   <div className="mt-md">
                     <StarRating rating={review.rating} />
                   </div>
-                  <p className="mt-sm text-body-sm leading-relaxed text-on-surface-variant">
+                  <p className="mt-sm text-body-sm leading-relaxed text-zinc-400">
                     {review.comment ?? "No comment."}
                   </p>
                 </article>

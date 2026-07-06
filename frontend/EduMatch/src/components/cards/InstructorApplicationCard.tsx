@@ -41,7 +41,7 @@ export function InstructorApplicationCard({
   const isRejected = application.status === "rejected";
 
   return (
-    <article className="rounded-lg border border-outline-variant bg-surface-container p-lg transition hover:border-primary/50 hover:bg-surface-container-high">
+    <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg transition hover:border-primary/50 hover:bg-[#27272A]">
       <div className="flex flex-col gap-md lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 gap-md">
           <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/80 to-secondary/80 text-body-md font-semibold text-on-primary">
@@ -49,23 +49,23 @@ export function InstructorApplicationCard({
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-sm">
-              <h3 className="text-headline-md text-on-surface">{application.instructorName}</h3>
+              <h3 className="text-headline-md text-zinc-100">{application.instructorName}</h3>
               <RequestStatusBadge status={application.status} />
             </div>
-            <p className="mt-xs text-body-sm text-on-surface-variant">{application.specialization}</p>
-            <div className="mt-sm flex flex-wrap gap-sm text-body-sm text-on-surface-variant">
+            <p className="mt-xs text-body-sm text-zinc-400">{application.specialization}</p>
+            <div className="mt-sm flex flex-wrap gap-sm text-body-sm text-zinc-400">
               <span className="flex items-center gap-xs rounded-full bg-tertiary/15 px-sm py-xs text-tertiary">
                 <Star className="size-4 fill-current" />
                 {application.rating}
               </span>
-              <span className="rounded-full bg-surface-container-low px-sm py-xs ring-1 ring-outline-variant">
+              <span className="rounded-full bg-[#121214] px-sm py-xs ring-1 ring-outline-variant">
                 {application.reviews} reviews
               </span>
-              <span className="flex items-center gap-xs rounded-full bg-surface-container-low px-sm py-xs ring-1 ring-outline-variant">
+              <span className="flex items-center gap-xs rounded-full bg-[#121214] px-sm py-xs ring-1 ring-outline-variant">
                 <BriefcaseBusiness className="size-4 text-secondary" />
                 {application.experience}
               </span>
-              <span className="flex items-center gap-xs rounded-full bg-surface-container-low px-sm py-xs ring-1 ring-outline-variant">
+              <span className="flex items-center gap-xs rounded-full bg-[#121214] px-sm py-xs ring-1 ring-outline-variant">
                 <WalletCards className="size-4 text-secondary" />
                 {application.proposedPrice}
               </span>
@@ -81,7 +81,7 @@ export function InstructorApplicationCard({
             View Profile
           </Link>
           <Link
-            className="inline-flex h-10 items-center justify-center rounded-md border border-outline-variant px-md text-body-sm font-medium text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm font-medium text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
             to={`/student/chat?applicationId=${application.id}`}
           >
             Message Applicant
@@ -105,7 +105,7 @@ export function InstructorApplicationCard({
         </div>
       </div>
 
-      <p className="mt-md rounded-md border border-outline-variant bg-surface-container-low p-md text-body-sm text-on-surface-variant">
+      <p className="mt-md rounded-md border border-[#27272A] bg-[#121214] p-md text-body-sm text-zinc-400">
         {application.message}
       </p>
     </article>

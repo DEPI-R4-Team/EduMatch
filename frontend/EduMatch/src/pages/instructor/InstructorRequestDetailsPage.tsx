@@ -98,15 +98,15 @@ export function InstructorRequestDetailsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <BackButton className="mb-md" fallback={ROUTES.INSTRUCTOR.REQUESTS} />
         {loading ? (
-          <p className="text-body-sm text-on-surface-variant">Loading request...</p>
+          <p className="text-body-sm text-zinc-400">Loading request...</p>
         ) : request ? (
           <div className="flex flex-col gap-md lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <h1 className="text-headline-lg text-on-surface">{request.title}</h1>
-              <p className="mt-xs text-body-sm text-on-surface-variant">
+              <h1 className="text-headline-lg text-zinc-100">{request.title}</h1>
+              <p className="mt-xs text-body-sm text-zinc-400">
                 {request.subject} {request.level ? `- ${request.level}` : ""}
               </p>
             </div>
@@ -127,86 +127,86 @@ export function InstructorRequestDetailsPage() {
 
         {request ? (
           <div className="grid gap-lg xl:grid-cols-[minmax(0,1fr)_360px]">
-            <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Request Details</h2>
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Request Details</h2>
               <div className="mt-lg grid gap-md sm:grid-cols-2">
                 <div className="flex items-center gap-sm">
-                  <div className="flex size-9 items-center justify-center rounded-md bg-surface-container-high text-primary">
+                  <div className="flex size-9 items-center justify-center rounded-md bg-[#27272A] text-primary">
                     <User className="size-4" />
                   </div>
                   <div>
-                    <p className="text-label-md uppercase text-on-surface-variant">Student</p>
-                    <p className="text-body-md text-on-surface">{request.student_name ?? "Student"}</p>
+                    <p className="text-label-md uppercase text-zinc-400">Student</p>
+                    <p className="text-body-md text-zinc-100">{request.student_name ?? "Student"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-sm">
-                  <div className="flex size-9 items-center justify-center rounded-md bg-surface-container-high text-secondary">
+                  <div className="flex size-9 items-center justify-center rounded-md bg-[#27272A] text-secondary">
                     <CalendarClock className="size-4" />
                   </div>
                   <div>
-                    <p className="text-label-md uppercase text-on-surface-variant">Preferred Time</p>
-                    <p className="text-body-md text-on-surface">{formatDate(request.preferred_datetime)}</p>
+                    <p className="text-label-md uppercase text-zinc-400">Preferred Time</p>
+                    <p className="text-body-md text-zinc-100">{formatDate(request.preferred_datetime)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-sm">
-                  <div className="flex size-9 items-center justify-center rounded-md bg-surface-container-high text-tertiary">
+                  <div className="flex size-9 items-center justify-center rounded-md bg-[#27272A] text-tertiary">
                     <Wallet className="size-4" />
                   </div>
                   <div>
-                    <p className="text-label-md uppercase text-on-surface-variant">Budget</p>
-                    <p className="text-body-md text-on-surface">{formatMoney(request.base_price)}</p>
+                    <p className="text-label-md uppercase text-zinc-400">Budget</p>
+                    <p className="text-body-md text-zinc-100">{formatMoney(request.base_price)}</p>
                   </div>
                 </div>
                 {request.request_type === "group" ? (
                   <>
                     <div className="flex items-center gap-sm">
-                      <div className="flex size-9 items-center justify-center rounded-md bg-surface-container-high text-primary">
+                      <div className="flex size-9 items-center justify-center rounded-md bg-[#27272A] text-primary">
                         <User className="size-4" />
                       </div>
                       <div>
-                        <p className="text-label-md uppercase text-on-surface-variant">Group Price</p>
-                        <p className="text-body-md text-on-surface">{formatMoney(request.current_price_per_student ?? request.final_price_per_student)}</p>
+                        <p className="text-label-md uppercase text-zinc-400">Group Price</p>
+                        <p className="text-body-md text-zinc-100">{formatMoney(request.current_price_per_student ?? request.final_price_per_student)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-sm">
-                      <div className="flex size-9 items-center justify-center rounded-md bg-surface-container-high text-secondary">
+                      <div className="flex size-9 items-center justify-center rounded-md bg-[#27272A] text-secondary">
                         <User className="size-4" />
                       </div>
                       <div>
-                        <p className="text-label-md uppercase text-on-surface-variant">Participants</p>
-                        <p className="text-body-md text-on-surface">Max {request.max_participants ?? request.max_students ?? "-"}</p>
+                        <p className="text-label-md uppercase text-zinc-400">Participants</p>
+                        <p className="text-body-md text-zinc-100">Max {request.max_participants ?? request.max_students ?? "-"}</p>
                       </div>
                     </div>
                   </>
                 ) : null}
                 <div className="flex items-center gap-sm">
-                  <div className="flex size-9 items-center justify-center rounded-md bg-surface-container-high text-on-surface-variant">
+                  <div className="flex size-9 items-center justify-center rounded-md bg-[#27272A] text-zinc-400">
                     <MessageSquareText className="size-4" />
                   </div>
                   <div>
-                    <p className="text-label-md uppercase text-on-surface-variant">Applications</p>
-                    <p className="text-body-md text-on-surface">{request.applications_count}</p>
+                    <p className="text-label-md uppercase text-zinc-400">Applications</p>
+                    <p className="text-body-md text-zinc-100">{request.applications_count}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-lg rounded-md border border-outline-variant bg-surface-container-low p-md">
-                <p className="text-label-md uppercase text-on-surface-variant">Student Message</p>
-                <p className="mt-xs text-body-sm leading-relaxed text-on-surface">{request.description}</p>
+              <div className="mt-lg rounded-md border border-[#27272A] bg-[#121214] p-md">
+                <p className="text-label-md uppercase text-zinc-400">Student Message</p>
+                <p className="mt-xs text-body-sm leading-relaxed text-zinc-100">{request.description}</p>
               </div>
             </section>
 
-            <aside className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-              <h2 className="text-headline-md text-on-surface">Apply</h2>
+            <aside className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <h2 className="text-headline-md text-zinc-100">Apply</h2>
               <div className="mt-md space-y-sm">
                 <textarea
-                  className="min-h-28 w-full rounded-md border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none transition placeholder:text-on-surface-variant focus:border-primary"
+                  className="min-h-28 w-full rounded-md border border-[#27272A] bg-[#121214] px-md py-sm text-body-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-[#8b5cf6]"
                   onChange={(event) => setMessage(event.target.value)}
                   placeholder="Write a short proposal for the student"
                   value={message}
                 />
                 <Input
-                  className="h-10 border-outline-variant bg-surface-container-low text-on-surface"
+                  className="h-10 border-[#27272A] bg-[#121214] text-zinc-100"
                   onChange={(event) => setPrice(event.target.value)}
                   placeholder="Proposed price"
                   type="number"

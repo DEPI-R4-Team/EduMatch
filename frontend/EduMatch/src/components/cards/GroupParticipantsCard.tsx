@@ -11,11 +11,11 @@ export function GroupParticipantsCard({ session }: GroupParticipantsCardProps) {
   }
 
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-label-md uppercase text-secondary">Group Participants</p>
-          <h2 className="mt-xs text-headline-md text-on-surface">Students Joined</h2>
+          <h2 className="mt-xs text-headline-md text-zinc-100">Students Joined</h2>
         </div>
         <span className="w-fit rounded-full bg-secondary/15 px-sm py-xs text-label-md uppercase text-secondary ring-1 ring-secondary/25">
           Not connected

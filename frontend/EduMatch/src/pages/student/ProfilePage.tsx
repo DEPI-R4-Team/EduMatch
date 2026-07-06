@@ -10,9 +10,9 @@ import type { User } from "@/types/user";
 
 function BioCard({ bio, onEdit }: { bio: string | null | undefined; onEdit: () => void }) {
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex items-center justify-between gap-md">
-        <h2 className="text-headline-md text-on-surface">About Me</h2>
+        <h2 className="text-headline-md text-zinc-100">About Me</h2>
         <button
           className="inline-flex h-9 items-center justify-center gap-xs rounded-md border border-secondary/40 px-md text-body-sm font-medium text-secondary transition hover:bg-secondary/10"
           onClick={onEdit}
@@ -22,7 +22,7 @@ function BioCard({ bio, onEdit }: { bio: string | null | undefined; onEdit: () =
           Edit
         </button>
       </div>
-      <p className="mt-md text-body-sm text-on-surface-variant">
+      <p className="mt-md text-body-sm text-zinc-400">
         {bio?.trim() ? bio : "Not added yet"}
       </p>
     </section>
@@ -31,14 +31,14 @@ function BioCard({ bio, onEdit }: { bio: string | null | undefined; onEdit: () =
 
 function SecurityCard({ onMessage }: { onMessage: (message: string) => void }) {
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex items-start gap-md">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary/15 text-secondary">
           <ShieldCheck className="size-5" />
         </div>
         <div>
-          <h2 className="text-headline-md text-on-surface">Security</h2>
-          <p className="mt-xs text-body-sm text-on-surface-variant">
+          <h2 className="text-headline-md text-zinc-100">Security</h2>
+          <p className="mt-xs text-body-sm text-zinc-400">
             Password: Last changed recently
           </p>
         </div>
@@ -46,7 +46,7 @@ function SecurityCard({ onMessage }: { onMessage: (message: string) => void }) {
 
       <div className="mt-lg space-y-sm">
         <button
-          className="flex h-10 w-full items-center gap-sm rounded-md border border-outline-variant bg-surface-container-low px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+          className="flex h-10 w-full items-center gap-sm rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
           onClick={() => onMessage("Password change is not implemented yet.")}
           type="button"
         >
@@ -54,7 +54,7 @@ function SecurityCard({ onMessage }: { onMessage: (message: string) => void }) {
           Change Password
         </button>
         <button
-          className="flex h-10 w-full items-center gap-sm rounded-md border border-outline-variant bg-surface-container-low px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+          className="flex h-10 w-full items-center gap-sm rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
           onClick={() => onMessage("Login session management is not implemented yet.")}
           type="button"
         >
@@ -122,13 +122,13 @@ function InfoGrid({ user }: { user: User | null }) {
   ];
 
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-      <h2 className="text-headline-md text-on-surface">Personal Information</h2>
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+      <h2 className="text-headline-md text-zinc-100">Personal Information</h2>
       <dl className="mt-lg grid gap-md md:grid-cols-2">
         {personalInfo.map((item) => (
-          <div className="rounded-md border border-outline-variant bg-surface-container-low p-md" key={item.label}>
-            <dt className="text-body-sm text-on-surface-variant">{item.label}</dt>
-            <dd className="mt-xs break-words text-body-sm font-medium text-on-surface">{item.value}</dd>
+          <div className="rounded-md border border-[#27272A] bg-[#121214] p-md" key={item.label}>
+            <dt className="text-body-sm text-zinc-400">{item.label}</dt>
+            <dd className="mt-xs break-words text-body-sm font-medium text-zinc-100">{item.value}</dd>
           </div>
         ))}
       </dl>
@@ -150,8 +150,8 @@ function StudentProfileEditForm({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <form className="rounded-lg border border-outline-variant bg-surface-container p-lg" onSubmit={onSubmit}>
-      <h2 className="text-headline-md text-on-surface">Edit Profile</h2>
+    <form className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg" onSubmit={onSubmit}>
+      <h2 className="text-headline-md text-zinc-100">Edit Profile</h2>
       <div className="mt-lg grid gap-md md:grid-cols-2">
         <Field label="Full Name" value={form.full_name} onChange={(value) => onChange("full_name", value)} required />
         <Field label="Email" type="email" value={form.email} onChange={(value) => onChange("email", value)} required />
@@ -164,15 +164,15 @@ function StudentProfileEditForm({
         <Field label="Profile Image URL" value={form.profile_image} onChange={(value) => onChange("profile_image", value)} />
       </div>
       <label className="mt-md block space-y-sm">
-        <span className="text-body-sm font-medium text-on-surface">Bio</span>
+        <span className="text-body-sm font-medium text-zinc-100">Bio</span>
         <textarea
-          className="min-h-32 w-full resize-y rounded-md border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="min-h-32 w-full resize-y rounded-md border border-[#27272A] bg-[#121214] px-md py-sm text-body-sm text-zinc-100 outline-none focus-visible:border-[#8b5cf6] focus-visible:ring-3 focus-visible:ring-[#8b5cf6]/30"
           onChange={(event) => onChange("bio", event.target.value)}
           value={form.bio}
         />
       </label>
       <div className="mt-lg flex flex-wrap justify-end gap-sm">
-        <button className="inline-flex h-10 items-center justify-center rounded-md border border-outline-variant px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface" onClick={onCancel} type="button">
+        <button className="inline-flex h-10 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100" onClick={onCancel} type="button">
           Cancel
         </button>
         <button className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90 disabled:opacity-60" disabled={isSaving} type="submit">
@@ -198,9 +198,9 @@ function Field({
 }) {
   return (
     <label className="space-y-sm">
-      <span className="text-body-sm font-medium text-on-surface">{label}</span>
+      <span className="text-body-sm font-medium text-zinc-100">{label}</span>
       <Input
-        className="h-11 border-outline-variant bg-surface-container-low text-on-surface"
+        className="h-11 border-[#27272A] bg-[#121214] text-zinc-100"
         onChange={(event) => onChange(event.target.value)}
         required={required}
         type={type}
@@ -276,11 +276,11 @@ export function ProfilePage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <div>
           <BackButton className="mb-md" fallback="/student/dashboard" />
-          <h1 className="text-headline-lg text-on-surface">My Profile</h1>
-          <p className="mt-xs max-w-2xl text-body-sm text-on-surface-variant">
+          <h1 className="text-headline-lg text-zinc-100">My Profile</h1>
+          <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
             Manage your personal information and learning preferences.
           </p>
         </div>

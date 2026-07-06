@@ -14,8 +14,8 @@ export function PaymentSuccessCard({ sessionPath = "/student/sessions/1" }: Paym
             <CheckCircle2 className="size-5" />
           </div>
           <div>
-            <h2 className="text-headline-md text-on-surface">Payment Successful</h2>
-            <p className="mt-sm max-w-2xl text-body-sm text-on-surface-variant">
+            <h2 className="text-headline-md text-zinc-100">Payment Successful</h2>
+            <p className="mt-sm max-w-2xl text-body-sm text-zinc-400">
               Your payment is now held safely by the platform until the session is completed.
             </p>
           </div>

@@ -52,11 +52,11 @@ export function AdminReviewsPage() {
     <Page title="Reviews" description="Manage review visibility." error={error} message={message} loading={loading} empty={!reviews.length}>
       <section className="grid gap-md">
         {reviews.map((review) => (
-          <article className="rounded-lg border border-outline-variant bg-surface-container p-lg" key={review.id}>
+          <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg" key={review.id}>
             <div className="flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <p className="text-body-md font-medium text-on-surface">{review.student_name ?? "Student"} to {review.instructor_name ?? "Instructor"}</p>
-                <p className="mt-xs text-body-sm capitalize text-on-surface-variant">{review.status} - {date(review.created_at)}</p>
+                <p className="text-body-md font-medium text-zinc-100">{review.student_name ?? "Student"} to {review.instructor_name ?? "Instructor"}</p>
+                <p className="mt-xs text-body-sm capitalize text-zinc-400">{review.status} - {date(review.created_at)}</p>
               </div>
               <div className="flex flex-wrap items-center gap-sm">
                 <div className="flex gap-xs text-tertiary">{[1, 2, 3, 4, 5].map((rating) => <Star className={rating <= review.rating ? "size-4 fill-current" : "size-4"} key={rating} />)}</div>
@@ -71,7 +71,7 @@ export function AdminReviewsPage() {
                 )}
               </div>
             </div>
-            <p className="mt-md text-body-sm text-on-surface-variant">{review.comment ?? "No comment."}</p>
+            <p className="mt-md text-body-sm text-zinc-400">{review.comment ?? "No comment."}</p>
           </article>
         ))}
       </section>
@@ -80,5 +80,5 @@ export function AdminReviewsPage() {
 }
 
 function Page({ title, description, error, message, loading, empty, children }: { title: string; description: string; error: string; message: string; loading: boolean; empty: boolean; children: ReactNode }) {
-  return <><header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop"><h1 className="text-headline-lg text-on-surface">{title}</h1><p className="mt-xs text-body-sm text-on-surface-variant">{description}</p></header><div className="space-y-lg px-margin-mobile py-lg md:px-margin-desktop">{message ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{message}</p> : null}{error ? <ErrorState message={error} /> : null}{loading ? <LoadingState message={`Loading ${title.toLowerCase()}...`} /> : null}{children}{!loading && empty ? <EmptyState title={`No ${title.toLowerCase()} found`} message="Real platform data will appear here when available." /> : null}</div></>;
+  return <><header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop"><h1 className="text-headline-lg text-zinc-100">{title}</h1><p className="mt-xs text-body-sm text-zinc-400">{description}</p></header><div className="space-y-lg px-margin-mobile py-lg md:px-margin-desktop">{message ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{message}</p> : null}{error ? <ErrorState message={error} /> : null}{loading ? <LoadingState message={`Loading ${title.toLowerCase()}...`} /> : null}{children}{!loading && empty ? <EmptyState title={`No ${title.toLowerCase()} found`} message="Real platform data will appear here when available." /> : null}</div></>;
 }

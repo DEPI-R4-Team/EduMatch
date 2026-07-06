@@ -17,32 +17,32 @@ export function OrderSummaryCard({
   paymentStatus,
   onPayNow,
 }: OrderSummaryCardProps) {
-  const paymentHeld = paymentStatus === "held";
+  const paymentHeld = paymentStatus === "held" || paymentStatus === "released";
 
   return (
-    <aside className="sticky top-lg rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <aside className="sticky top-lg rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex items-center justify-between gap-md">
-        <h2 className="text-headline-md text-on-surface">Order Summary</h2>
+        <h2 className="text-headline-md text-zinc-100">Order Summary</h2>
         <PaymentStatusBadge status={paymentStatus} />
       </div>
 
       <dl className="mt-lg space-y-md text-body-sm">
         <div className="flex justify-between gap-md">
-          <dt className="text-on-surface-variant">Session Price</dt>
-          <dd className="font-medium text-on-surface">
+          <dt className="text-zinc-400">Session Price</dt>
+          <dd className="font-medium text-zinc-100">
             {sessionPrice} {currency}
           </dd>
         </div>
         <div className="flex justify-between gap-md">
-          <dt className="text-on-surface-variant">Platform Fee (10%)</dt>
-          <dd className="font-medium text-on-surface">
+          <dt className="text-zinc-400">Platform Fee (10%)</dt>
+          <dd className="font-medium text-zinc-100">
             {platformFee} {currency}
           </dd>
         </div>
-        <div className="border-t border-outline-variant pt-md">
+        <div className="border-t border-[#27272A] pt-md">
           <div className="flex justify-between gap-md">
-            <dt className="text-body-md font-medium text-on-surface">Total Amount</dt>
-            <dd className="text-body-md font-semibold text-on-surface">
+            <dt className="text-body-md font-medium text-zinc-100">Total Amount</dt>
+            <dd className="text-body-md font-semibold text-zinc-100">
               {totalAmount} {currency}
             </dd>
           </div>
@@ -55,9 +55,9 @@ export function OrderSummaryCard({
         onClick={onPayNow}
         type="button"
       >
-        {paymentHeld ? "Payment Held" : "Pay Now"}
+        {paymentStatus === "released" ? "Payment Released" : paymentHeld ? "Payment Held" : "Pay Now"}
       </button>
-      <p className="mt-sm text-center text-label-md text-on-surface-variant">
+      <p className="mt-sm text-center text-label-md text-zinc-400">
         Funds are held in escrow.
       </p>
     </aside>

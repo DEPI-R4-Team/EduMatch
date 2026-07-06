@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { AmbientGlow } from "@/components/AmbientGlow";
+import { StarField } from "@/components/animations/StarField";
 import { InputWithIcon } from "@/components/InputWithIcon";
 import { RoleSelector } from "@/components/RoleSelector";
 import { Button } from "@/components/ui/button";
@@ -7,46 +7,41 @@ import { useRegister } from "@/hooks/useRegister";
 import { ROUTES } from "@/lib/routes";
 
 const inputClass =
-  "bg-surface-container-lowest rounded-md pr-md placeholder:text-outline";
+  "rounded-lg border-white/10 bg-[#111] pr-md text-white placeholder:text-gray-500 focus-visible:border-[#8b5cf6] focus-visible:ring-1 focus-visible:ring-[#8b5cf6]";
 
 export function RegisterPage() {
   const { form, role, setRole, loading, error, handleChange, handleSubmit } =
     useRegister();
 
   return (
-    <div className="bg-background text-on-background min-h-screen flex items-center justify-center p-md relative overflow-hidden font-body-md">
-      <AmbientGlow />
+    <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-[#030303] p-md font-body-md text-white">
+      <StarField />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[38rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8b5cf6]/20 blur-[130px]" aria-hidden="true" />
 
-      <main className="w-full max-w-112 bg-surface-container rounded-xl border border-outline-variant p-xl shadow-2xl relative z-10 flex flex-col">
-        {/* Header */}
-        <header className="text-center mb-xl">
-          <h1 className="text-headline-md font-headline-md text-primary mb-sm">
+      <main className="relative z-10 flex w-full max-w-112 flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0a0a0a]/90 p-8 shadow-[0_28px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+        <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[#8b5cf6]/50 to-transparent" aria-hidden="true" />
+
+        <header className="mb-xl text-center">
+          <h1 className="mb-sm text-headline-md font-headline-md text-white">
             EduMatch
           </h1>
-          <h2 className="text-headline-lg font-headline-lg text-on-surface mb-xs hidden md:block">
+          <h2 className="mb-xs hidden text-headline-lg font-headline-lg text-white md:block">
             Create an Account
           </h2>
-          <h2 className="text-headline-lg-mobile font-headline-lg-mobile text-on-surface mb-xs md:hidden">
+          <h2 className="mb-xs text-headline-lg-mobile font-headline-lg-mobile text-white md:hidden">
             Create an Account
           </h2>
-          <p className="text-body-sm font-body-sm text-on-surface-variant">
+          <p className="text-body-sm font-body-sm text-gray-400">
             Join the academic portal to manage your learning requests.
           </p>
         </header>
 
-        {/* Form */}
         <form className="flex flex-col gap-lg" onSubmit={handleSubmit} noValidate>
-          {/* Role selector */}
           <RoleSelector value={role} onChange={setRole} />
 
-          {/* Input fields */}
           <div className="flex flex-col gap-md">
-            {/* Full Name */}
             <div className="flex flex-col gap-xs">
-              <label
-                className="text-label-md font-label-md text-on-surface"
-                htmlFor="fullName"
-              >
+              <label className="text-label-md font-label-md text-white" htmlFor="fullName">
                 Full Name
               </label>
               <InputWithIcon
@@ -63,12 +58,8 @@ export function RegisterPage() {
               />
             </div>
 
-            {/* Email */}
             <div className="flex flex-col gap-xs">
-              <label
-                className="text-label-md font-label-md text-on-surface"
-                htmlFor="email"
-              >
+              <label className="text-label-md font-label-md text-white" htmlFor="email">
                 Email Address
               </label>
               <InputWithIcon
@@ -85,12 +76,8 @@ export function RegisterPage() {
               />
             </div>
 
-            {/* Password */}
             <div className="flex flex-col gap-xs">
-              <label
-                className="text-label-md font-label-md text-on-surface"
-                htmlFor="password"
-              >
+              <label className="text-label-md font-label-md text-white" htmlFor="password">
                 Password
               </label>
               <InputWithIcon
@@ -107,12 +94,8 @@ export function RegisterPage() {
               />
             </div>
 
-            {/* Confirm Password */}
             <div className="flex flex-col gap-xs">
-              <label
-                className="text-label-md font-label-md text-on-surface"
-                htmlFor="confirmPassword"
-              >
+              <label className="text-label-md font-label-md text-white" htmlFor="confirmPassword">
                 Confirm Password
               </label>
               <InputWithIcon
@@ -129,20 +112,16 @@ export function RegisterPage() {
               />
             </div>
 
-            {/* Phone */}
             <div className="flex flex-col gap-xs">
-              <label
-                className="text-label-md font-label-md text-on-surface"
-                htmlFor="phone"
-              >
-                Phone <span className="text-on-surface-variant">(optional)</span>
+              <label className="text-label-md font-label-md text-white" htmlFor="phone">
+                Phone <span className="text-gray-400">(optional)</span>
               </label>
               <InputWithIcon
                 icon="call"
                 id="phone"
                 name="phone"
                 type="tel"
-                placeholder="01005154081"
+                placeholder="01012345678"
                 autoComplete="tel"
                 value={form.phone}
                 onChange={handleChange}
@@ -152,11 +131,8 @@ export function RegisterPage() {
 
             {role === "student" ? (
               <div className="flex flex-col gap-xs">
-                <label
-                  className="text-label-md font-label-md text-on-surface"
-                  htmlFor="educationLevel"
-                >
-                  Education Level <span className="text-on-surface-variant">(optional)</span>
+                <label className="text-label-md font-label-md text-white" htmlFor="educationLevel">
+                  Education Level <span className="text-gray-400">(optional)</span>
                 </label>
                 <InputWithIcon
                   icon="school"
@@ -172,11 +148,8 @@ export function RegisterPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-xs">
-                <label
-                  className="text-label-md font-label-md text-on-surface"
-                  htmlFor="specialization"
-                >
-                  Specialization <span className="text-on-surface-variant">(optional)</span>
+                <label className="text-label-md font-label-md text-white" htmlFor="specialization">
+                  Specialization <span className="text-gray-400">(optional)</span>
                 </label>
                 <InputWithIcon
                   icon="history_edu"
@@ -193,18 +166,16 @@ export function RegisterPage() {
             )}
           </div>
 
-          {/* API / validation error */}
           {error && (
-            <p className="text-body-sm text-error" role="alert">
+            <p className="text-body-sm text-red-300" role="alert">
               {error}
             </p>
           )}
 
-          {/* Submit */}
           <Button
             type="submit"
             disabled={loading}
-            className="w-full mt-sm bg-primary text-label-md font-label-md text-on-primary-fixed py-md h-auto rounded-lg hover:bg-primary-fixed-dim transition-colors gap-xs shadow-[0_0_15px_rgba(192,193,255,0.15)] hover:shadow-[0_0_20px_rgba(192,193,255,0.25)] disabled:opacity-60 cursor-pointer"
+            className="mt-sm h-auto w-full cursor-pointer gap-xs rounded-xl bg-[#8b5cf6] py-md text-label-md font-label-md text-white shadow-[0_0_20px_rgba(139,92,246,0.2)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#7c3aed] disabled:opacity-60"
           >
             {loading ? "Creating account…" : "Register"}
             {!loading && (
@@ -219,14 +190,13 @@ export function RegisterPage() {
           </Button>
         </form>
 
-        {/* Footer */}
         <div className="mt-lg text-center">
-          <span className="text-body-sm font-body-sm text-on-surface-variant">
+          <span className="text-body-sm font-body-sm text-gray-400">
             Already have an account?{" "}
           </span>
           <Link
             to={ROUTES.LOGIN}
-            className="text-body-sm font-body-sm text-primary hover:text-primary-fixed-dim transition-colors underline decoration-transparent hover:decoration-primary-fixed-dim underline-offset-4"
+            className="text-body-sm font-body-sm text-[#a78bfa] underline decoration-transparent underline-offset-4 transition-colors hover:text-white hover:decoration-[#a78bfa]"
           >
             Login
           </Link>

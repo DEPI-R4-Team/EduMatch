@@ -32,7 +32,7 @@ export function DashboardTopbarActions() {
       <NotificationsDropdown />
       <Link
         aria-label="View profile"
-        className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-surface-container text-on-surface transition hover:bg-surface-container-high"
+        className="flex size-10 items-center justify-center overflow-hidden rounded-full border border-[#27272A] bg-[#18181B] text-zinc-200 transition-colors hover:bg-white/5"
         to={profilePath}
       >
         {profileImage ? (

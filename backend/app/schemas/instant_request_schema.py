@@ -1,9 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.session_schema import SessionResponse
+from app.services.pricing_service import is_below_minimum, minimum_price_error
 
 
 class InstantRequestCreate(BaseModel):
@@ -16,6 +17,12 @@ class InstantRequestCreate(BaseModel):
     session_type: str = Field(default="online", max_length=32)
     urgency_level: str | None = Field(default=None, max_length=32)
     expires_in_minutes: int = Field(default=30, ge=10, le=120)
+
+    @model_validator(mode="after")
+    def validate_minimum_price(self) -> "InstantRequestCreate":
+        if is_below_minimum(self.budget):
+            raise ValueError(minimum_price_error())
+        return self
 
 
 class InstantRequestResponse(BaseModel):

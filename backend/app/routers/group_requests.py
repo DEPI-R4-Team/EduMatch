@@ -66,8 +66,10 @@ def application_response(application: Application, request: LearningRequest) -> 
 def group_response(db: Session, request: LearningRequest, current_user: User | None = None, include_applications: bool = False) -> GroupRequestResponse:
     participants = get_active_participants(db, request.id)
     active_count = len(participants)
+    paid_count = sum(1 for participant in participants if participant.payment_status in {"held", "released"})
+    price_locked = request.status != "open" and request.final_price_per_student is not None
     price_if_join = None
-    if request.base_price is not None and (request.min_price_per_student or request.minimum_price) is not None:
+    if not price_locked and request.base_price is not None and (request.min_price_per_student or request.minimum_price) is not None:
         price_if_join = calculate_group_price(
             request.base_price,
             request.min_price_per_student or request.minimum_price or Decimal("0"),
@@ -105,10 +107,16 @@ def group_response(db: Session, request: LearningRequest, current_user: User | N
         base_price=request.base_price,
         min_price_per_student=request.min_price_per_student or request.minimum_price,
         current_price_per_student=request.current_price_per_student or request.final_price_per_student,
+        final_price_per_student=request.final_price_per_student,
+        price_locked=price_locked,
         max_participants=request.max_participants or request.max_students,
         min_participants=request.min_participants,
         active_participants_count=active_count,
         price_if_you_join=price_if_join,
+        paid_participants_count=paid_count,
+        total_required_participants=active_count,
+        fully_funded=bool(participants) and paid_count == active_count,
+        current_user_payment_status=current_user_participant.payment_status if current_user_participant else None,
         status=request.status,
         accepted_instructor_id=request.accepted_instructor_id,
         accepted_instructor_name=request.accepted_instructor.full_name if request.accepted_instructor else None,
@@ -296,14 +304,24 @@ def get_group_price_preview(
 ) -> GroupPricePreviewResponse:
     request = get_group_request_or_404(db, request_id)
     active_count = len(get_active_participants(db, request.id))
+    participants = get_active_participants(db, request.id)
+    paid_count = sum(1 for participant in participants if participant.payment_status in {"held", "released"})
     min_price = request.min_price_per_student or request.minimum_price
     current_price = request.current_price_per_student or request.final_price_per_student
-    price_if_join = calculate_group_price(request.base_price, min_price, active_count + 1) if request.base_price and min_price else None
+    price_locked = request.status != "open" and request.final_price_per_student is not None
+    price_if_join = calculate_group_price(request.base_price, min_price, active_count + 1) if not price_locked and request.base_price and min_price else None
     return GroupPricePreviewResponse(
+        base_price=request.base_price,
+        min_price_per_student=min_price,
         active_participants_count=active_count,
         max_participants=request.max_participants,
         current_price_per_student=current_price,
+        final_price_per_student=request.final_price_per_student,
+        price_locked=price_locked,
         price_if_you_join=price_if_join,
+        paid_participants_count=paid_count,
+        total_required_participants=active_count,
+        fully_funded=bool(participants) and paid_count == active_count,
     )
 
 
@@ -314,18 +332,41 @@ def pay_group_share(
     current_user: User = Depends(require_roles(["student"])),
     db: Session = Depends(get_db),
 ) -> GroupPaymentResponse:
-    request = get_group_request_or_404(db, request_id)
+    request = db.scalar(
+        select(LearningRequest)
+        .where(LearningRequest.id == request_id, LearningRequest.request_type == "group")
+        .with_for_update()
+        .options(
+            selectinload(LearningRequest.student),
+            selectinload(LearningRequest.group_owner),
+            selectinload(LearningRequest.accepted_instructor),
+            selectinload(LearningRequest.sessions),
+            selectinload(LearningRequest.group_participants).selectinload(GroupParticipant.student),
+        )
+    )
+    if request is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group request not found.")
     if request.status != "waiting_payment":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This group is not waiting for participant payments.")
-    participant = ensure_group_participant(db, request.id, current_user.id)
+    participant = db.scalar(
+        select(GroupParticipant)
+        .where(
+            GroupParticipant.request_id == request.id,
+            GroupParticipant.student_id == current_user.id,
+            GroupParticipant.status == "active",
+        )
+        .with_for_update()
+    )
+    if participant is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not an active participant in this group.")
     if participant.payment_status in {"held", "released"} or participant.payment_id is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="You already paid your share.")
     session = request.sessions[0] if request.sessions else None
     if session is None or request.accepted_instructor_id is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This group does not have an accepted instructor yet.")
-    amount = request.current_price_per_student or request.final_price_per_student
+    amount = request.final_price_per_student
     if amount is None or amount <= 0:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This group does not have a valid price.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This group does not have a locked payment price.")
 
     platform_fee = (amount * PLATFORM_FEE_RATE).quantize(Decimal("0.01"))
     payment = Payment(

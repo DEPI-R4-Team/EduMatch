@@ -49,8 +49,8 @@ export function FeaturedSessionCard({ session }: FeaturedSessionCardProps) {
               </span>
               <SessionStatusBadge status={session.status} />
             </div>
-            <h2 className="text-headline-md text-on-surface">{session.subject}</h2>
-            <p className="mt-xs text-body-sm text-on-surface-variant">
+            <h2 className="text-headline-md text-zinc-100">{session.subject}</h2>
+            <p className="mt-xs text-body-sm text-zinc-400">
               With {session.instructor} · {session.sessionMode} session
             </p>
           </div>
@@ -80,10 +80,10 @@ export function FeaturedSessionCard({ session }: FeaturedSessionCardProps) {
 
           return (
             <div
-              className="rounded-md border border-outline-variant bg-surface-container-low/80 p-md"
+              className="rounded-md border border-[#27272A] bg-[#121214]/80 p-md"
               key={item.label}
             >
-              <p className="flex items-center gap-sm text-body-sm text-on-surface-variant">
+              <p className="flex items-center gap-sm text-body-sm text-zinc-400">
                 <Icon className="size-4 text-secondary" />
                 {item.label}
               </p>
@@ -93,7 +93,7 @@ export function FeaturedSessionCard({ session }: FeaturedSessionCardProps) {
                 ) : item.label === "Status" ? (
                   <SessionStatusBadge status={session.status} />
                 ) : (
-                  <p className="text-body-sm font-medium text-on-surface">{item.value}</p>
+                  <p className="text-body-sm font-medium text-zinc-100">{item.value}</p>
                 )}
               </div>
             </div>

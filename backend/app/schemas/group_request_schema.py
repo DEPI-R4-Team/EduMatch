@@ -1,10 +1,11 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.schemas.application_schema import ApplicationResponse
 from app.schemas.payment_schema import PaymentResponse
+from app.services.pricing_service import is_below_minimum, minimum_price_error
 
 
 class GroupRequestCreate(BaseModel):
@@ -18,6 +19,12 @@ class GroupRequestCreate(BaseModel):
     min_price_per_student: Decimal = Field(gt=0)
     max_participants: int = Field(ge=2, le=50)
     min_participants: int = Field(default=2, ge=1)
+
+    @model_validator(mode="after")
+    def validate_minimum_prices(self) -> "GroupRequestCreate":
+        if is_below_minimum(self.base_price) or is_below_minimum(self.min_price_per_student):
+            raise ValueError(minimum_price_error())
+        return self
 
 
 class GroupParticipantResponse(BaseModel):
@@ -49,10 +56,16 @@ class GroupRequestResponse(BaseModel):
     base_price: Decimal | None = None
     min_price_per_student: Decimal | None = None
     current_price_per_student: Decimal | None = None
+    final_price_per_student: Decimal | None = None
+    price_locked: bool = False
     max_participants: int | None = None
     min_participants: int | None = None
     active_participants_count: int
     price_if_you_join: Decimal | None = None
+    paid_participants_count: int = 0
+    total_required_participants: int = 0
+    fully_funded: bool = False
+    current_user_payment_status: str | None = None
     status: str
     accepted_instructor_id: int | None = None
     accepted_instructor_name: str | None = None
@@ -69,10 +82,17 @@ class GroupJoinResponse(BaseModel):
 
 
 class GroupPricePreviewResponse(BaseModel):
+    base_price: Decimal | None = None
+    min_price_per_student: Decimal | None = None
     active_participants_count: int
     max_participants: int | None = None
     current_price_per_student: Decimal | None = None
+    final_price_per_student: Decimal | None = None
+    price_locked: bool = False
     price_if_you_join: Decimal | None = None
+    paid_participants_count: int = 0
+    total_required_participants: int = 0
+    fully_funded: bool = False
 
 
 class GroupPaymentResponse(BaseModel):

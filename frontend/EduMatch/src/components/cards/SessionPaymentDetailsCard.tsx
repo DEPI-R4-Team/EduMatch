@@ -30,24 +30,24 @@ export function SessionPaymentDetailsCard({ details }: SessionPaymentDetailsCard
   ];
 
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex items-center gap-md">
         <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-body-md font-semibold text-on-primary">
           {getInitials(details.instructorName)}
         </div>
         <div>
-          <h2 className="text-headline-md text-on-surface">{details.instructorName}</h2>
-          <p className="text-body-sm text-on-surface-variant">{details.instructorRole}</p>
+          <h2 className="text-headline-md text-zinc-100">{details.instructorName}</h2>
+          <p className="text-body-sm text-zinc-400">{details.instructorRole}</p>
         </div>
       </div>
 
-      <div className="my-lg border-t border-outline-variant" />
+      <div className="my-lg border-t border-[#27272A]" />
 
       <dl className="space-y-md">
         {sessionRows.map((row) => (
           <div className="flex items-center justify-between gap-md" key={row.label}>
-            <dt className="text-body-sm text-on-surface-variant">{row.label}</dt>
-            <dd className="text-right text-body-sm font-medium text-on-surface">{row.value}</dd>
+            <dt className="text-body-sm text-zinc-400">{row.label}</dt>
+            <dd className="text-right text-body-sm font-medium text-zinc-100">{row.value}</dd>
           </div>
         ))}
       </dl>

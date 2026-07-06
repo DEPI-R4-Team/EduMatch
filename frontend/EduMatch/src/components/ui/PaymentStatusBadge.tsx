@@ -17,19 +17,19 @@ const statusLabels: Record<PaymentStatus, string> = {
 };
 
 const statusClasses: Record<PaymentStatus, string> = {
-  pending: "bg-tertiary/15 text-tertiary ring-tertiary/25",
-  held: "bg-primary/15 text-primary ring-primary/25",
-  released: "bg-emerald-400/15 text-emerald-300 ring-emerald-400/25",
-  refunded: "bg-secondary/15 text-secondary ring-secondary/25",
-  cancelled: "bg-outline/15 text-on-surface-variant ring-outline/25",
-  disputed: "bg-error/15 text-error ring-error/25",
+  pending: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  held: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
+  released: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+  refunded: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
+  cancelled: "bg-red-500/10 text-red-400 border border-red-500/20",
+  disputed: "bg-red-500/10 text-red-400 border border-red-500/20",
 };
 
 export function PaymentStatusBadge({ status, className }: PaymentStatusBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center rounded-full px-sm py-xs text-label-md uppercase ring-1",
+        "inline-flex w-fit items-center rounded-md px-2.5 py-1 text-xs font-semibold uppercase",
         statusClasses[status],
         className,
       )}

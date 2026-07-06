@@ -1,4 +1,4 @@
-export type SessionStatus = "ready" | "active" | "completed" | "cancelled" | "disputed";
+export type SessionStatus = "waiting_payment" | "ready" | "active" | "completed" | "cancelled" | "disputed";
 
 export interface Session {
   id: number;
@@ -17,6 +17,7 @@ export interface Session {
   created_at: string;
   updated_at: string;
   request_title: string | null;
+  request_type: string | null;
   request_status: string | null;
   payment_status: string | null;
   payment_amount: string | null;

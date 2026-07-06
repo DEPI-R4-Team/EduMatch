@@ -8,7 +8,7 @@ from decimal import Decimal
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models import GroupParticipant, Payment, Review, Session as LearningSession, User
-from app.schemas.session_schema import SessionResponse
+from app.schemas.session_schema import SessionRescheduleRequest, SessionResponse
 from app.services.notification_service import create_notification, create_notifications
 from app.services.payment_service import refund_held_payment, release_held_payment
 
@@ -20,8 +20,20 @@ def ping() -> dict[str, str]:
     return {"router": "sessions", "status": "ok"}
 
 
-def to_session_response(session: LearningSession) -> SessionResponse:
+def to_session_response(session: LearningSession, current_user: User | None = None) -> SessionResponse:
     payment = max(session.payments, key=lambda item: item.created_at) if session.payments else None
+    participant_payment_status = None
+    if session.request is not None and session.request.request_type == "group" and current_user is not None and current_user.role == "student":
+        payment = next((item for item in session.payments if item.student_id == current_user.id), None)
+        participant = next(
+            (
+                item
+                for item in session.request.group_participants
+                if item.student_id == current_user.id and item.status == "active"
+            ),
+            None,
+        )
+        participant_payment_status = participant.payment_status if participant else None
     amount = None
     platform_fee = None
     total_amount = None
@@ -31,7 +43,7 @@ def to_session_response(session: LearningSession) -> SessionResponse:
         platform_fee = payment.platform_fee
         total_amount = payment.total_amount
     elif session.request:
-        amount = session.request.final_price_per_student or session.request.base_price
+        amount = session.request.final_price_per_student or session.request.current_price_per_student or session.request.base_price
         if amount:
             platform_fee = (amount * Decimal("0.10")).quantize(Decimal("0.01"))
             total_amount = amount + platform_fee
@@ -39,8 +51,9 @@ def to_session_response(session: LearningSession) -> SessionResponse:
     return SessionResponse.model_validate(session).model_copy(
         update={
             "request_title": session.request.title if session.request else None,
+            "request_type": session.request.request_type if session.request else None,
             "request_status": session.request.status if session.request else None,
-            "payment_status": payment.status if payment else None,
+            "payment_status": payment.status if payment else participant_payment_status,
             "payment_amount": amount,
             "payment_platform_fee": platform_fee,
             "payment_total_amount": total_amount,
@@ -78,7 +91,7 @@ def get_my_sessions(
             selectinload(LearningSession.reviews),
         )
     ).all()
-    return [to_session_response(session) for session in sessions]
+    return [to_session_response(session, current_user) for session in sessions]
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
@@ -111,7 +124,7 @@ def get_session(
         ) is not None
     if current_user.role != "admin" and current_user.id not in {session.student_id, session.instructor_id} and not is_group_participant:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot view this session.")
-    return to_session_response(session)
+    return to_session_response(session, current_user)
 
 
 def get_session_or_404(db: Session, session_id: int) -> LearningSession:
@@ -164,6 +177,48 @@ def has_held_payment_or_paid_request(session: LearningSession) -> bool:
     )
 
 
+@router.put("/{session_id}/reschedule", response_model=SessionResponse)
+def reschedule_session(
+    session_id: int,
+    payload: SessionRescheduleRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> SessionResponse:
+    session = get_session_or_404(db, session_id)
+    if session.request is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session request is missing.")
+    if session.request.request_type != "normal":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only normal sessions can be rescheduled.")
+    if current_user.role != "student" or current_user.id != session.student_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the student who owns this normal session can reschedule it.")
+    if session.status not in {"waiting_payment", "ready"}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only waiting payment or ready sessions can be rescheduled.")
+
+    scheduled_at = payload.scheduled_at
+    if scheduled_at.tzinfo is None:
+        scheduled_at = scheduled_at.replace(tzinfo=timezone.utc)
+    else:
+        scheduled_at = scheduled_at.astimezone(timezone.utc)
+
+    if scheduled_at <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New schedule must be in the future.")
+
+    session.scheduled_at = scheduled_at
+    session.request.preferred_datetime = scheduled_at
+    formatted_schedule = scheduled_at.strftime("%Y-%m-%d %H:%M UTC")
+    create_notification(
+        db,
+        user_id=session.instructor_id,
+        type="session_rescheduled",
+        title="Session rescheduled",
+        message=f"The student rescheduled {session.request.title} to {formatted_schedule}.",
+        link_url=f"/instructor/sessions/{session.id}",
+    )
+    db.commit()
+    db.refresh(session)
+    return to_session_response(get_session_or_404(db, session_id), current_user)
+
+
 @router.put("/{session_id}/start", response_model=SessionResponse)
 def start_session(
     session_id: int,
@@ -208,7 +263,7 @@ def start_session(
         )
     db.commit()
     db.refresh(session)
-    return to_session_response(get_session_or_404(db, session_id))
+    return to_session_response(get_session_or_404(db, session_id), current_user)
 
 
 @router.put("/{session_id}/instructor-complete", response_model=SessionResponse)
@@ -238,7 +293,7 @@ def instructor_complete_session(
         )
     db.commit()
     db.refresh(session)
-    return to_session_response(get_session_or_404(db, session_id))
+    return to_session_response(get_session_or_404(db, session_id), current_user)
 
 
 @router.post("/{session_id}/confirm-completion", response_model=SessionResponse)
@@ -253,7 +308,7 @@ def confirm_session_completion(
     if session.status in {"cancelled", "disputed"}:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This session cannot be completed.")
     if session.status == "completed":
-        return to_session_response(session)
+        return to_session_response(session, current_user)
     if session.instructor_marked_completed_at is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Instructor must mark the session completed first.")
 
@@ -297,7 +352,7 @@ def confirm_session_completion(
     create_notification(db, user_id=session.instructor_id, type="payment_released", title="Payment released", message="Payment has been released to your wallet.", link_url="/instructor/wallet")
     db.commit()
     db.refresh(session)
-    return to_session_response(get_session_or_404(db, session_id))
+    return to_session_response(get_session_or_404(db, session_id), current_user)
 
 
 @router.put("/{session_id}/cancel", response_model=SessionResponse)
@@ -311,7 +366,7 @@ def cancel_session(
     if session.status == "completed":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Completed sessions cannot be cancelled.")
     if session.status == "cancelled":
-        return to_session_response(session)
+        return to_session_response(session, current_user)
 
     payments = get_held_payments(db, session.id) if session.request and session.request.request_type == "group" else []
     payment = get_latest_held_payment(db, session.id)
@@ -344,4 +399,4 @@ def cancel_session(
         session.request.status = "cancelled"
     db.commit()
     db.refresh(session)
-    return to_session_response(get_session_or_404(db, session_id))
+    return to_session_response(get_session_or_404(db, session_id), current_user)

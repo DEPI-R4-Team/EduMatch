@@ -26,21 +26,21 @@ export function SessionOverviewCard({ session }: SessionOverviewCardProps) {
   ];
 
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex flex-col gap-lg md:flex-row md:items-start md:justify-between">
         <div className="flex min-w-0 gap-md">
           <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-body-md font-semibold text-on-primary">
             {getInitials(session.instructorName)}
           </div>
           <div className="min-w-0">
-            <h2 className="text-headline-md text-on-surface">{session.subject}</h2>
-            <p className="mt-sm text-body-md font-medium text-on-surface">{session.instructorName}</p>
-            <p className="text-body-sm text-on-surface-variant">
+            <h2 className="text-headline-md text-zinc-100">{session.subject}</h2>
+            <p className="mt-sm text-body-md font-medium text-zinc-100">{session.instructorName}</p>
+            <p className="text-body-sm text-zinc-400">
               {session.instructorRole} · {session.instructorSpecialization}
             </p>
-            <p className="mt-sm flex items-center gap-xs text-body-sm text-on-surface-variant">
+            <p className="mt-sm flex items-center gap-xs text-body-sm text-zinc-400">
               <Star className="size-4 fill-tertiary text-tertiary" />
-              <span className="font-medium text-on-surface">{session.instructorRating}</span>
+              <span className="font-medium text-zinc-100">{session.instructorRating}</span>
               <span>({session.instructorReviews} reviews)</span>
             </p>
           </div>
@@ -57,23 +57,23 @@ export function SessionOverviewCard({ session }: SessionOverviewCardProps) {
           const Icon = item.icon;
 
           return (
-            <div className="rounded-md border border-outline-variant bg-surface-container-low p-md" key={item.label}>
+            <div className="rounded-md border border-[#27272A] bg-[#121214] p-md" key={item.label}>
               <p className="flex items-center gap-sm text-label-md uppercase text-secondary">
                 <Icon className="size-4" />
                 {item.label}
               </p>
-              <p className="mt-xs text-body-sm font-medium text-on-surface">{item.value}</p>
+              <p className="mt-xs text-body-sm font-medium text-zinc-100">{item.value}</p>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-lg rounded-md border border-outline-variant bg-surface-container-low p-md">
+      <div className="mt-lg rounded-md border border-[#27272A] bg-[#121214] p-md">
         <p className="flex items-center gap-sm text-label-md uppercase text-secondary">
           <GraduationCap className="size-4" />
           Session focus
         </p>
-        <p className="mt-xs text-body-sm text-on-surface-variant">{session.description}</p>
+        <p className="mt-xs text-body-sm text-zinc-400">{session.description}</p>
       </div>
     </section>
   );

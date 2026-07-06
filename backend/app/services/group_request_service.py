@@ -40,8 +40,23 @@ def update_group_request_price(db: Session, request_id: int) -> Decimal | None:
     active_count = len(get_active_participants(db, request_id))
     price = calculate_group_price(base_price, min_price, active_count)
     request.current_price_per_student = price
-    request.final_price_per_student = price
+    if request.status != "open":
+        request.final_price_per_student = price
     return price
+
+
+def lock_group_request_price(db: Session, request: LearningRequest) -> Decimal:
+    if request.request_type != "group":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This is not a group request.")
+    base_price = request.base_price
+    min_price = request.min_price_per_student or request.minimum_price
+    if base_price is None or min_price is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This group does not have valid pricing.")
+    active_count = len(get_active_participants(db, request.id))
+    locked_price = calculate_group_price(base_price, min_price, active_count)
+    request.current_price_per_student = locked_price
+    request.final_price_per_student = locked_price
+    return locked_price
 
 
 def add_group_owner_as_participant(db: Session, request: LearningRequest, owner_id: int) -> GroupParticipant:

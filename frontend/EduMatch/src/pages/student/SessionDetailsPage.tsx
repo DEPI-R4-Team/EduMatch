@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 import { Star, X } from "lucide-react";
 import { GroupParticipantsCard } from "@/components/cards/GroupParticipantsCard";
 import { MeetingAccessCard } from "@/components/cards/MeetingAccessCard";
@@ -13,7 +14,7 @@ import { SessionStatusTimelineCard } from "@/components/cards/SessionStatusTimel
 import { BackButton } from "@/components/ui/BackButton";
 import type { PaymentStatus } from "@/components/ui/PaymentStatusBadge";
 import { createReview } from "@/services/reviews.service";
-import { cancelSession, confirmSessionCompletion, getSessionById, startSession } from "@/services/sessions.service";
+import { cancelSession, confirmSessionCompletion, getSessionById, rescheduleSession, startSession } from "@/services/sessions.service";
 import type { Session } from "@/types/session";
 import type { SessionDetailsData } from "@/types/sessionDetails";
 
@@ -35,6 +36,26 @@ function formatMoney(value: string | null) {
   return `${Number(value ?? 0).toFixed(2)} EGP`;
 }
 
+function toDatetimeLocalValue(value: string | null) {
+  const date = value ? new Date(value) : new Date(Date.now() + 60 * 60 * 1000);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function parseApiError(error: unknown, fallback: string) {
+  if (axios.isAxiosError(error)) {
+    const detail = (error.response?.data as { detail?: unknown } | undefined)?.detail;
+    if (typeof detail === "string") {
+      return detail;
+    }
+  }
+  return fallback;
+}
+
 function mapSession(session: Session): SessionDetailsData {
   return {
     id: String(session.id),
@@ -45,6 +66,7 @@ function mapSession(session: Session): SessionDetailsData {
     instructorRating: 0,
     instructorReviews: 0,
     requestTitle: session.request_title ?? "Learning Request",
+    requestType: session.request_type,
     sessionType: session.session_type === "offline" ? "Offline" : "Online",
     sessionMode: session.session_mode === "group" ? "Group" : "Individual",
     status: session.status,
@@ -74,6 +96,10 @@ export function SessionDetailsPage() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [rescheduleValue, setRescheduleValue] = useState("");
+  const [rescheduleError, setRescheduleError] = useState("");
+  const [rescheduleSaving, setRescheduleSaving] = useState(false);
 
   async function loadSession() {
     if (Number.isNaN(numericSessionId)) {
@@ -128,8 +154,36 @@ export function SessionDetailsPage() {
     void handleStartSession();
   }
 
-  function handleReschedule() {
-    setMeetingMessage("Reschedule feature will be available later.");
+  function handleOpenReschedule() {
+    setRescheduleValue(toDatetimeLocalValue(backendSession?.scheduled_at ?? null));
+    setRescheduleError("");
+    setRescheduleOpen(true);
+  }
+
+  async function handleSubmitReschedule() {
+    if (!rescheduleValue) {
+      setRescheduleError("Choose a new date and time.");
+      return;
+    }
+
+    const nextDate = new Date(rescheduleValue);
+    if (Number.isNaN(nextDate.getTime())) {
+      setRescheduleError("Choose a valid date and time.");
+      return;
+    }
+
+    setRescheduleSaving(true);
+    setRescheduleError("");
+    try {
+      const updated = await rescheduleSession(numericSessionId, nextDate.toISOString());
+      setBackendSession(updated);
+      setMeetingMessage("Session rescheduled successfully.");
+      setRescheduleOpen(false);
+    } catch (error) {
+      setRescheduleError(parseApiError(error, "Could not reschedule this session."));
+    } finally {
+      setRescheduleSaving(false);
+    }
   }
 
   async function handleCancelSession() {
@@ -160,7 +214,7 @@ export function SessionDetailsPage() {
   }
 
   if (loading) {
-    return <div className="p-lg text-body-sm text-on-surface-variant">Loading session details...</div>;
+    return <div className="p-lg text-body-sm text-zinc-400">Loading session details...</div>;
   }
 
   if (error || !session) {
@@ -169,12 +223,12 @@ export function SessionDetailsPage() {
 
   return (
     <>
-      <header className="border-b border-outline-variant bg-background/90 px-margin-mobile py-lg backdrop-blur md:px-margin-desktop">
+      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
         <BackButton fallback="/student/sessions" />
         <div className="mt-md">
           <p className="text-label-md uppercase text-secondary">Session #{session.id}</p>
-          <h1 className="mt-xs text-headline-lg text-on-surface">Session Details</h1>
-          <p className="mt-xs max-w-3xl text-body-sm text-on-surface-variant">
+          <h1 className="mt-xs text-headline-lg text-zinc-100">Session Details</h1>
+          <p className="mt-xs max-w-3xl text-body-sm text-zinc-400">
             Review session information, payment status, meeting access, and completion actions.
           </p>
         </div>
@@ -208,7 +262,7 @@ export function SessionDetailsPage() {
             onConfirmComplete={handleConfirmComplete}
             onJoinMeeting={handleJoinMeeting}
             onLeaveReview={() => setReviewOpen(true)}
-            onReschedule={handleReschedule}
+            onReschedule={handleOpenReschedule}
             session={session}
           />
           {session.status === "completed" && reviewSubmitted ? (
@@ -222,15 +276,15 @@ export function SessionDetailsPage() {
 
       {reviewOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-margin-mobile">
-          <section className="w-full max-w-lg rounded-lg border border-outline-variant bg-surface-container p-lg shadow-xl">
+          <section className="w-full max-w-lg rounded-lg border border-[#27272A] bg-[#18181B] p-lg shadow-xl">
             <div className="flex items-start justify-between gap-md">
               <div>
                 <p className="text-label-md uppercase text-secondary">Review</p>
-                <h2 className="mt-xs text-headline-md text-on-surface">Leave Review</h2>
+                <h2 className="mt-xs text-headline-md text-zinc-100">Leave Review</h2>
               </div>
               <button
                 aria-label="Close review modal"
-                className="flex size-9 items-center justify-center rounded-md border border-outline-variant text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+                className="flex size-9 items-center justify-center rounded-md border border-[#27272A] text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
                 onClick={() => setReviewOpen(false)}
                 type="button"
               >
@@ -240,7 +294,7 @@ export function SessionDetailsPage() {
 
             <div className="mt-lg space-y-md">
               <div>
-                <p className="text-label-md uppercase text-on-surface-variant">Rating</p>
+                <p className="text-label-md uppercase text-zinc-400">Rating</p>
                 <div className="mt-sm flex gap-xs">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <button
@@ -256,14 +310,14 @@ export function SessionDetailsPage() {
                 </div>
               </div>
               <textarea
-                className="min-h-28 w-full rounded-md border border-outline-variant bg-surface-container-low px-md py-sm text-body-sm text-on-surface outline-none transition placeholder:text-on-surface-variant focus:border-primary"
+                className="min-h-28 w-full rounded-md border border-[#27272A] bg-[#121214] px-md py-sm text-body-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-[#8b5cf6]"
                 onChange={(event) => setReviewComment(event.target.value)}
                 placeholder="Share how the session went..."
                 value={reviewComment}
               />
               <div className="flex flex-col gap-sm sm:flex-row sm:justify-end">
                 <button
-                  className="inline-flex h-10 items-center justify-center rounded-md border border-outline-variant px-md text-body-sm text-on-surface-variant transition hover:bg-surface-container-high"
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A]"
                   onClick={() => setReviewOpen(false)}
                   type="button"
                 >
@@ -275,6 +329,74 @@ export function SessionDetailsPage() {
                   type="button"
                 >
                   Submit Review
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {rescheduleOpen ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-margin-mobile">
+          <section className="w-full max-w-lg rounded-lg border border-[#27272A] bg-[#18181B] p-lg shadow-xl">
+            <div className="flex items-start justify-between gap-md">
+              <div>
+                <p className="text-label-md uppercase text-secondary">Schedule</p>
+                <h2 className="mt-xs text-headline-md text-zinc-100">Reschedule Session</h2>
+                <p className="mt-xs text-body-sm text-zinc-400">
+                  Choose a new future date and time for this normal session.
+                </p>
+              </div>
+              <button
+                aria-label="Close reschedule modal"
+                className="flex size-9 items-center justify-center rounded-md border border-[#27272A] text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
+                onClick={() => setRescheduleOpen(false)}
+                type="button"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="mt-lg space-y-md">
+              <div className="rounded-md border border-[#27272A] bg-[#121214] p-md text-body-sm">
+                <p className="text-zinc-400">Current schedule</p>
+                <p className="mt-xs font-medium text-zinc-100">
+                  {formatDate(backendSession?.scheduled_at ?? null)} at {formatTime(backendSession?.scheduled_at ?? null)}
+                </p>
+              </div>
+
+              <label className="block space-y-sm">
+                <span className="text-body-sm font-medium text-zinc-100">New date and time</span>
+                <input
+                  className="h-11 w-full rounded-md border border-[#27272A] bg-[#121214] px-md text-body-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-[#8b5cf6]"
+                  min={toDatetimeLocalValue(null)}
+                  onChange={(event) => setRescheduleValue(event.target.value)}
+                  type="datetime-local"
+                  value={rescheduleValue}
+                />
+              </label>
+
+              {rescheduleError ? (
+                <p className="rounded-md border border-error/25 bg-error/10 px-md py-sm text-body-sm text-error">
+                  {rescheduleError}
+                </p>
+              ) : null}
+
+              <div className="flex flex-col gap-sm sm:flex-row sm:justify-end">
+                <button
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A]"
+                  onClick={() => setRescheduleOpen(false)}
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={rescheduleSaving}
+                  onClick={() => void handleSubmitReschedule()}
+                  type="button"
+                >
+                  {rescheduleSaving ? "Saving..." : "Save New Schedule"}
                 </button>
               </div>
             </div>

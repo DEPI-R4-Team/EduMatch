@@ -22,7 +22,7 @@ type RoleSelectorProps = {
 export function RoleSelector({ value, onChange }: RoleSelectorProps) {
   return (
     <div className="flex flex-col gap-xs">
-      <span className="text-label-md font-label-md text-on-surface">Select Role</span>
+      <span className="text-label-md font-label-md text-white">Select Role</span>
       <div className="grid grid-cols-2 gap-md">
         {ROLES.map((role) => {
           const isActive = value === role.value;
@@ -33,25 +33,25 @@ export function RoleSelector({ value, onChange }: RoleSelectorProps) {
               onClick={() => onChange(role.value)}
               aria-pressed={isActive}
               className={cn(
-                "group flex flex-col items-center gap-sm p-md rounded-lg border transition-all cursor-pointer",
+                "group flex cursor-pointer flex-col items-center gap-sm rounded-xl border p-md transition-all duration-200 hover:-translate-y-0.5",
                 isActive
-                  ? "border-primary bg-primary-container/10"
-                  : "border-outline-variant bg-surface-container-lowest hover:border-outline hover:bg-surface-container-low",
+                  ? "border-[#8b5cf6]/50 bg-[#8b5cf6]/10 shadow-[0_0_20px_rgba(139,92,246,0.12)]"
+                  : "border-white/10 bg-white/5 hover:border-[#8b5cf6]/30 hover:bg-white/[0.07]",
               )}
             >
               <span
                 className={cn(
                   "material-symbols-outlined group-hover:scale-110",
                   isActive
-                    ? "text-primary transition-transform"
-                    : "text-on-surface-variant group-hover:text-on-surface transition-all",
+                    ? "text-[#a78bfa] transition-transform"
+                    : "text-gray-400 transition-all group-hover:text-white",
                 )}
                 style={{ fontSize: "32px", fontVariationSettings: "'FILL' 0" }}
                 aria-hidden="true"
               >
                 {role.icon}
               </span>
-              <span className="text-label-md font-label-md text-on-surface">{role.label}</span>
+              <span className="text-label-md font-label-md text-white">{role.label}</span>
             </button>
           );
         })}

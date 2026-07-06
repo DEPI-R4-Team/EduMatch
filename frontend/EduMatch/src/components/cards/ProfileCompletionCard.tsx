@@ -9,12 +9,12 @@ const checklist = [
 
 export function ProfileCompletionCard() {
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex items-center justify-between gap-md">
-        <h2 className="text-headline-md text-on-surface">Profile Completion</h2>
+        <h2 className="text-headline-md text-zinc-100">Profile Completion</h2>
         <span className="text-body-sm font-medium text-primary">85%</span>
       </div>
-      <div className="mt-md h-2 rounded-full bg-surface-container-low">
+      <div className="mt-md h-2 rounded-full bg-[#121214]">
         <div className="h-2 w-[85%] rounded-full bg-primary" />
       </div>
       <div className="mt-lg space-y-sm">
@@ -23,9 +23,9 @@ export function ProfileCompletionCard() {
             {item.done ? (
               <CheckCircle2 className="size-4 text-emerald-300" />
             ) : (
-              <Circle className="size-4 text-on-surface-variant" />
+              <Circle className="size-4 text-zinc-400" />
             )}
-            <span className={item.done ? "text-on-surface" : "text-on-surface-variant"}>{item.label}</span>
+            <span className={item.done ? "text-zinc-100" : "text-zinc-400"}>{item.label}</span>
           </div>
         ))}
       </div>

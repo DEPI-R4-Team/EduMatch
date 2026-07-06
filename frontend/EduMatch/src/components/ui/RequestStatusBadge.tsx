@@ -37,26 +37,26 @@ const statusLabels: Record<RequestStatus | ApplicationStatus, string> = {
 };
 
 const statusClasses: Record<RequestStatus | ApplicationStatus, string> = {
-  open: "bg-secondary/15 text-secondary ring-secondary/25",
-  instant_open: "bg-secondary/15 text-secondary ring-secondary/25",
-  instant_accepted: "bg-primary/15 text-primary ring-primary/25",
-  pending_instant: "bg-tertiary/15 text-tertiary ring-tertiary/25",
-  accepted: "bg-primary/15 text-primary ring-primary/25",
-  waiting_payment: "bg-tertiary/15 text-tertiary ring-tertiary/25",
-  paid: "bg-blue-400/15 text-blue-300 ring-blue-400/25",
-  in_session: "bg-blue-400/15 text-blue-300 ring-blue-400/25",
-  completed: "bg-emerald-400/15 text-emerald-300 ring-emerald-400/25",
-  cancelled: "bg-error/15 text-error ring-error/25",
-  expired: "bg-outline/15 text-on-surface-variant ring-outline/25",
-  pending: "bg-tertiary/15 text-tertiary ring-tertiary/25",
-  rejected: "bg-error/15 text-error ring-error/25",
+  open: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
+  instant_open: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
+  instant_accepted: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
+  pending_instant: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  accepted: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+  waiting_payment: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  paid: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+  in_session: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
+  completed: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+  cancelled: "bg-red-500/10 text-red-400 border border-red-500/20",
+  expired: "bg-red-500/10 text-red-400 border border-red-500/20",
+  pending: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  rejected: "bg-red-500/10 text-red-400 border border-red-500/20",
 };
 
 export function RequestStatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex w-fit items-center rounded-full px-sm py-xs text-label-md uppercase ring-1",
+        "inline-flex w-fit items-center rounded-md px-2.5 py-1 text-xs font-semibold uppercase",
         statusClasses[status],
         className,
       )}

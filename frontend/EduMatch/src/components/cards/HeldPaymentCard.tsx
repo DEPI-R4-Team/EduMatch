@@ -26,11 +26,11 @@ export function HeldPaymentCard({ payment }: HeldPaymentCardProps) {
       <div className="flex flex-col gap-md lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="mb-sm flex flex-wrap items-center gap-sm">
-            <h3 className="text-headline-md text-on-surface">{payment.session}</h3>
+            <h3 className="text-headline-md text-zinc-100">{payment.session}</h3>
             <PaymentStatusBadge status={payment.status} />
           </div>
-          <p className="text-body-sm text-on-surface-variant">Instructor: {payment.instructor}</p>
-          <p className="mt-md text-body-sm text-on-surface-variant">
+          <p className="text-body-sm text-zinc-400">Instructor: {payment.instructor}</p>
+          <p className="mt-md text-body-sm text-zinc-400">
             The instructor will receive the payment after the session is completed and confirmed.
           </p>
         </div>
@@ -43,41 +43,41 @@ export function HeldPaymentCard({ payment }: HeldPaymentCardProps) {
         </Link>
       </div>
 
-      <dl className="mt-lg grid gap-sm rounded-md border border-primary/20 bg-surface-container-low/80 p-md text-body-sm sm:grid-cols-2 xl:grid-cols-4">
+      <dl className="mt-lg grid gap-sm rounded-md border border-primary/20 bg-[#121214]/80 p-md text-body-sm sm:grid-cols-2 xl:grid-cols-4">
         <div>
-          <dt className="flex items-center gap-xs text-on-surface-variant">
+          <dt className="flex items-center gap-xs text-zinc-400">
             <Users className="size-4 text-secondary" />
             Session Mode
           </dt>
-          <dd className="mt-xs font-medium text-on-surface">{payment.sessionMode}</dd>
+          <dd className="mt-xs font-medium text-zinc-100">{payment.sessionMode}</dd>
         </div>
         {payment.sessionMode === "Group" ? (
           <>
             <div>
-              <dt className="text-on-surface-variant">Students Joined</dt>
-              <dd className="mt-xs font-medium text-on-surface">{payment.studentsJoined}</dd>
+              <dt className="text-zinc-400">Students Joined</dt>
+              <dd className="mt-xs font-medium text-zinc-100">{payment.studentsJoined}</dd>
             </div>
             <div>
-              <dt className="text-on-surface-variant">Your Share</dt>
-              <dd className="mt-xs font-medium text-on-surface">{payment.yourShare}</dd>
+              <dt className="text-zinc-400">Your Share</dt>
+              <dd className="mt-xs font-medium text-zinc-100">{payment.yourShare}</dd>
             </div>
             <div>
-              <dt className="text-on-surface-variant">Instructor Total</dt>
-              <dd className="mt-xs font-medium text-on-surface">{payment.instructorTotal}</dd>
+              <dt className="text-zinc-400">Instructor Total</dt>
+              <dd className="mt-xs font-medium text-zinc-100">{payment.instructorTotal}</dd>
             </div>
           </>
         ) : (
           <div>
-            <dt className="flex items-center gap-xs text-on-surface-variant">
+            <dt className="flex items-center gap-xs text-zinc-400">
               <WalletCards className="size-4 text-secondary" />
               Amount Held
             </dt>
-            <dd className="mt-xs font-medium text-on-surface">{payment.amountHeld}</dd>
+            <dd className="mt-xs font-medium text-zinc-100">{payment.amountHeld}</dd>
           </div>
         )}
         <div>
-          <dt className="text-on-surface-variant">Session Status</dt>
-          <dd className="mt-xs font-medium text-on-surface">{payment.sessionStatus}</dd>
+          <dt className="text-zinc-400">Session Status</dt>
+          <dd className="mt-xs font-medium text-zinc-100">{payment.sessionStatus}</dd>
         </div>
       </dl>
     </article>

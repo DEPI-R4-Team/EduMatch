@@ -9,7 +9,7 @@ import { AuthLayout } from "@/components/layouts/AuthLayout";
 import { PublicLayout } from "@/components/layouts/PublicLayout";
 import { ROUTES } from "@/lib/routes";
 
-// Suspense in main.tsx shows LoadingScreen while lazy chunks load.
+// Suspense in main.tsx shows LoadingPage while lazy chunks load.
 const HomePage = lazy(() => import("@/pages/public/HomePage").then((m) => ({ default: m.HomePage })));
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage").then((m) => ({ default: m.LoginPage })));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage").then((m) => ({ default: m.RegisterPage })));

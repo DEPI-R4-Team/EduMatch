@@ -10,11 +10,11 @@ const skills = ["React", "JavaScript", "Tailwind CSS"];
 
 export function RelatedRequestCard({ session }: RelatedRequestCardProps) {
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
       <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-label-md uppercase text-secondary">Related Request</p>
-          <h2 className="mt-xs text-headline-md text-on-surface">{session.requestTitle}</h2>
+          <h2 className="mt-xs text-headline-md text-zinc-100">{session.requestTitle}</h2>
         </div>
         <Link
           className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-secondary/40 px-md text-body-sm font-medium text-secondary transition hover:bg-secondary/10"
@@ -25,16 +25,16 @@ export function RelatedRequestCard({ session }: RelatedRequestCardProps) {
         </Link>
       </div>
 
-      <p className="mt-md text-body-sm text-on-surface-variant">{session.description}</p>
+      <p className="mt-md text-body-sm text-zinc-400">{session.description}</p>
 
       <div className="mt-lg grid gap-sm sm:grid-cols-2">
-        <div className="rounded-md border border-outline-variant bg-surface-container-low p-md">
+        <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
           <p className="text-label-md uppercase text-secondary">Learning Level</p>
-          <p className="mt-xs text-body-sm font-medium text-on-surface">Beginner</p>
+          <p className="mt-xs text-body-sm font-medium text-zinc-100">Beginner</p>
         </div>
-        <div className="rounded-md border border-outline-variant bg-surface-container-low p-md">
+        <div className="rounded-md border border-[#27272A] bg-[#121214] p-md">
           <p className="text-label-md uppercase text-secondary">Preferred Language</p>
-          <p className="mt-xs text-body-sm font-medium text-on-surface">English</p>
+          <p className="mt-xs text-body-sm font-medium text-zinc-100">English</p>
         </div>
       </div>
 

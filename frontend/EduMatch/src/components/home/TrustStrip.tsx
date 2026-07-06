@@ -14,11 +14,11 @@ const FEATURES: TrustFeature[] = [
 
 export function TrustStrip() {
   return (
-    <div className="border-y border-outline-variant bg-surface-container-lowest py-6">
+    <div className="relative border-y border-[var(--landing-border)] bg-[linear-gradient(90deg,rgba(192,193,255,0.06),rgba(76,215,246,0.05),rgba(255,183,131,0.05))] py-6 backdrop-blur">
       <div className="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop">
-        <ul className="flex flex-wrap justify-center gap-x-8 gap-y-4 md:justify-between items-center text-on-surface-variant text-body-sm font-medium">
-          {FEATURES.map((feature) => (
-            <li key={feature.label} className="flex items-center gap-2">
+        <ul className="landing-reveal flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-body-sm font-bold text-on-surface-variant md:justify-between">
+          {FEATURES.map((feature, index) => (
+            <li key={feature.label} className="landing-card flex items-center gap-2 rounded-full border border-transparent px-3 py-2 transition-all duration-300 hover:border-[var(--landing-border)] hover:bg-[var(--landing-panel)]" style={{ transitionDelay: `${index * 40}ms` }}>
               <span
                 className={`material-symbols-outlined text-[18px] ${feature.iconColor}`}
                 style={{ fontVariationSettings: "'FILL' 0" }}

@@ -8,11 +8,11 @@ const preferences = [
 
 export function LearningPreferencesCard() {
   return (
-    <section className="rounded-lg border border-outline-variant bg-surface-container p-lg">
-      <h2 className="text-headline-md text-on-surface">Learning Preferences</h2>
+    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+      <h2 className="text-headline-md text-zinc-100">Learning Preferences</h2>
 
       <div className="mt-lg">
-        <p className="text-body-sm text-on-surface-variant">Interested Subjects</p>
+        <p className="text-body-sm text-zinc-400">Interested Subjects</p>
         <div className="mt-sm flex flex-wrap gap-sm">
           {subjects.map((subject) => (
             <span
@@ -27,9 +27,9 @@ export function LearningPreferencesCard() {
 
       <dl className="mt-lg grid gap-md md:grid-cols-2">
         {preferences.map((item) => (
-          <div className="rounded-md border border-outline-variant bg-surface-container-low p-md" key={item.label}>
-            <dt className="text-body-sm text-on-surface-variant">{item.label}</dt>
-            <dd className="mt-xs text-body-sm font-medium text-on-surface">{item.value}</dd>
+          <div className="rounded-md border border-[#27272A] bg-[#121214] p-md" key={item.label}>
+            <dt className="text-body-sm text-zinc-400">{item.label}</dt>
+            <dd className="mt-xs text-body-sm font-medium text-zinc-100">{item.value}</dd>
           </div>
         ))}
       </dl>
