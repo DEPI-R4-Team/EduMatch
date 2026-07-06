@@ -89,7 +89,6 @@ export function PaymentConfirmationPage() {
     let cancelled = false;
     let attempts = 0;
     const maxAttempts = 30; // 30 x 2s = 60s max polling
-    let devConfirmAttempted = false;
 
     const poll = async () => {
       while (!cancelled && attempts < maxAttempts) {
@@ -101,23 +100,6 @@ export function PaymentConfirmationPage() {
             setPaymentStatus(updated.status);
             setPollingPaymentId(null);
             return;
-          }
-
-          // After a few polls, try dev-confirm to handle the case where
-          // Paymob's webhook can't reach localhost during development
-          if (attempts >= 3 && !devConfirmAttempted) {
-            devConfirmAttempted = true;
-            try {
-              const confirmed = await devConfirmPayment(pollingPaymentId);
-              if (confirmed.status !== "pending") {
-                setPayment(confirmed);
-                setPaymentStatus(confirmed.status);
-                setPollingPaymentId(null);
-                return;
-              }
-            } catch {
-              // dev-confirm not available (production) — continue polling for webhook
-            }
           }
         } catch {
           // ignore polling errors
@@ -171,8 +153,8 @@ export function PaymentConfirmationPage() {
       const response = await initiatePayment(numericSessionId);
 
       if (isPaymentIntention(response)) {
-        // Open Paymob checkout in a new tab
-        window.open(response.checkout_url, "_blank");
+        // Open Paymob checkout in the same tab
+        window.location.href = response.checkout_url;
         // Start polling for payment status on this tab
         setPayment({ ...payment!, id: response.payment_id } as typeof payment);
         setPollingPaymentId(response.payment_id);
@@ -240,6 +222,24 @@ export function PaymentConfirmationPage() {
               </svg>
               Waiting for payment confirmation from Paymob...
             </div>
+            {import.meta.env.DEV && pollingPaymentId && (
+              <button
+                className="mt-md inline-flex h-9 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary hover:bg-primary/90"
+                onClick={async () => {
+                  try {
+                    const confirmed = await devConfirmPayment(pollingPaymentId);
+                    setPayment(confirmed);
+                    setPaymentStatus(confirmed.status);
+                    setPollingPaymentId(null);
+                  } catch (err) {
+                    console.error("Dev confirm failed", err);
+                  }
+                }}
+                type="button"
+              >
+                Dev: Simulate Webhook Success
+              </button>
+            )}
           </section>
         ) : null}
 

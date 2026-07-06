@@ -27,7 +27,6 @@ export function PaymentCallbackPage() {
     let cancelled = false;
     let attempts = 0;
     const maxAttempts = 30;
-    let devConfirmAttempted = false;
 
     const poll = async () => {
       while (!cancelled && attempts < maxAttempts) {
@@ -50,28 +49,6 @@ export function PaymentCallbackPage() {
           } else if (data.status === "cancelled") {
             setStatus("failed");
             return;
-          }
-
-          // After a few polls, try dev-confirm (handles localhost where webhook can't arrive)
-          if (attempts >= 3 && !devConfirmAttempted) {
-            devConfirmAttempted = true;
-            try {
-              const confirmed = await devConfirmPayment(Number(paymentId));
-              setPayment(confirmed);
-              if (confirmed.status === "held" || confirmed.status === "released") {
-                setStatus("success");
-                setTimeout(() => {
-                  if (!cancelled) {
-                    navigate(`/student/payments/session/${confirmed.session_id}?payment_id=${confirmed.id}`, {
-                      replace: true,
-                    });
-                  }
-                }, 2000);
-                return;
-              }
-            } catch {
-              // dev-confirm not available (production) — continue polling for webhook
-            }
           }
         } catch {
           // ignore errors and retry
@@ -106,6 +83,28 @@ export function PaymentCallbackPage() {
             <p className="text-body-sm text-on-surface-variant">
               Please wait while we confirm your payment with Paymob...
             </p>
+            {import.meta.env.DEV && paymentId && (
+              <button
+                className="mt-md inline-flex h-9 items-center justify-center rounded-md bg-secondary px-sm text-body-sm font-medium text-on-secondary hover:bg-secondary/90"
+                onClick={async () => {
+                  try {
+                    const confirmed = await devConfirmPayment(Number(paymentId));
+                    setPayment(confirmed);
+                    if (confirmed.status === "held" || confirmed.status === "released") {
+                      setStatus("success");
+                      setTimeout(() => {
+                        navigate(`/student/payments/session/${confirmed.session_id}?payment_id=${confirmed.id}`, { replace: true });
+                      }, 2000);
+                    }
+                  } catch (err) {
+                    console.error("Dev confirm failed", err);
+                  }
+                }}
+                type="button"
+              >
+                Dev: Simulate Webhook Success
+              </button>
+            )}
           </div>
         )}
 
@@ -161,8 +160,30 @@ export function PaymentCallbackPage() {
             <p className="text-body-sm text-on-surface-variant">
               Your payment is still being processed. You can check the status on your payments page.
             </p>
+            {import.meta.env.DEV && paymentId && (
+              <button
+                className="mt-md inline-flex h-11 w-full items-center justify-center rounded-md bg-secondary px-lg text-body-sm font-medium text-on-secondary hover:bg-secondary/90"
+                onClick={async () => {
+                  try {
+                    const confirmed = await devConfirmPayment(Number(paymentId));
+                    setPayment(confirmed);
+                    if (confirmed.status === "held" || confirmed.status === "released") {
+                      setStatus("success");
+                      setTimeout(() => {
+                        navigate(`/student/payments/session/${confirmed.session_id}?payment_id=${confirmed.id}`, { replace: true });
+                      }, 2000);
+                    }
+                  } catch (err) {
+                    console.error("Dev confirm failed", err);
+                  }
+                }}
+                type="button"
+              >
+                Dev: Simulate Webhook Success
+              </button>
+            )}
             <button
-              className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-lg text-body-sm font-medium text-on-primary transition hover:bg-primary/90"
+              className="mt-sm inline-flex h-11 items-center justify-center rounded-md border border-outline-variant px-lg text-body-sm font-medium text-on-surface transition hover:bg-surface-container-high"
               onClick={() => navigate("/student/payments", { replace: true })}
               type="button"
             >
