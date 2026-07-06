@@ -259,8 +259,8 @@ export function PaymentsPage() {
                 <div>
                   <h2 className="text-headline-md text-on-surface">Group Session Payments</h2>
                   <p className="mt-sm text-body-sm text-on-surface-variant">
-                    Group payments are still future work. This screen currently shows normal
-                    session payment simulation.
+                    Group payments use the same Paymob checkout flow. Each participant pays their
+                    share individually.
                   </p>
                 </div>
               </div>
@@ -269,11 +269,11 @@ export function PaymentsPage() {
             <section className="rounded-lg border border-tertiary/30 bg-tertiary/10 p-lg">
               <div className="mb-sm flex items-center gap-sm text-tertiary">
                 <WalletCards className="size-5" />
-                <h2 className="text-headline-md">Academic Simulation</h2>
+                <h2 className="text-headline-md">Paymob Test Mode</h2>
               </div>
               <p className="text-body-sm text-on-surface-variant">
-                Payments in this project are simulated for graduation project purposes. No real
-                money is processed.
+                Payments are processed through Paymob in test mode. No real money is charged.
+                Use test card numbers to simulate transactions.
               </p>
             </section>
           </aside>

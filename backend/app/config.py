@@ -17,6 +17,14 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
+    # Paymob payment gateway (test mode)
+    paymob_api_key: str = ""
+    paymob_secret_key: str = ""
+    paymob_hmac_secret: str = ""
+    paymob_integration_id: int = 0
+    paymob_public_key: str = ""
+    paymob_base_url: str = "https://accept.paymob.com"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

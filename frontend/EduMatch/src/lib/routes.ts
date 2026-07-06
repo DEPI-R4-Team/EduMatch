@@ -23,6 +23,7 @@ export const ROUTES = {
     SESSION_DETAILS: "/student/sessions/:sessionId",
     PAYMENTS: "/student/payments",
     PAYMENT_CONFIRMATION: "/student/payments/session/:sessionId",
+    PAYMENT_CALLBACK: "/student/payment/callback",
     REVIEWS: "/student/reviews",
     PROFILE: "/student/profile",
     SETTINGS: "/student/settings",

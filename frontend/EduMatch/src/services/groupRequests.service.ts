@@ -6,6 +6,7 @@ import type {
   GroupRequest,
   GroupRequestCreatePayload,
 } from "@/types/groupRequest";
+import type { PaymentIntentionResponse } from "@/types/payment";
 
 export async function createGroupRequest(data: GroupRequestCreatePayload): Promise<GroupRequest> {
   const response = await api.post<GroupRequest>("/group-requests", data);
@@ -47,7 +48,8 @@ export async function getGroupPricePreview(id: number): Promise<GroupPricePrevie
   return response.data;
 }
 
-export async function payGroupRequest(id: number): Promise<GroupPaymentResponse> {
-  const response = await api.post<GroupPaymentResponse>(`/group-requests/${id}/pay`, { payment_method: "card_simulation" });
+export async function payGroupRequest(id: number): Promise<GroupPaymentResponse | PaymentIntentionResponse> {
+  const response = await api.post<GroupPaymentResponse | PaymentIntentionResponse>(`/group-requests/${id}/pay`, { payment_method: "paymob_card" });
   return response.data;
 }
+

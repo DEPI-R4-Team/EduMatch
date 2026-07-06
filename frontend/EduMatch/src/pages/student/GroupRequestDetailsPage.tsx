@@ -69,7 +69,13 @@ export function GroupRequestDetailsPage() {
     setActionLoading(true);
     setNotice("");
     try {
-      await action();
+      const result = await action();
+      // Handle Paymob checkout redirect
+      if (result && typeof result === "object" && "checkout_url" in result) {
+        const paymentResult = result as { checkout_url: string };
+        window.location.href = paymentResult.checkout_url;
+        return;
+      }
       setNotice(success);
       await loadGroup();
     } catch (err) {
@@ -189,7 +195,7 @@ export function GroupRequestDetailsPage() {
               {canPay ? (
                 <button className="inline-flex h-10 w-full items-center justify-center gap-xs rounded-md bg-secondary text-body-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:opacity-50" disabled={actionLoading} onClick={() => void runAction(() => payGroupRequest(group.id), "Your share is now held in escrow.")} type="button">
                   <WalletCards className="size-4" />
-                  Pay My Share
+                  Pay My Share via Paymob
                 </button>
               ) : null}
 

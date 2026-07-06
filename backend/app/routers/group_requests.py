@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -17,7 +18,9 @@ from app.schemas.group_request_schema import (
     GroupRequestCreate,
     GroupRequestResponse,
 )
-from app.schemas.payment_schema import PaymentResponse, SimulatePaymentRequest
+from app.config import settings
+from app.schemas.payment_schema import CreatePaymentIntentionResponse, PaymentResponse, SimulatePaymentRequest
+from app.services import paymob_service
 from app.services.group_request_service import (
     add_group_owner_as_participant,
     all_active_participants_paid,
@@ -31,6 +34,8 @@ from app.services.group_request_service import (
 )
 from app.services.notification_service import create_notification, create_notifications
 from app.services.payment_service import get_or_create_wallet
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/group-requests", tags=["group requests"])
 
@@ -307,13 +312,14 @@ def get_group_price_preview(
     )
 
 
-@router.post("/{request_id}/pay", response_model=GroupPaymentResponse)
+@router.post("/{request_id}/pay", response_model=GroupPaymentResponse | CreatePaymentIntentionResponse)
 def pay_group_share(
     request_id: int,
     payload: SimulatePaymentRequest | None = None,
     current_user: User = Depends(require_roles(["student"])),
     db: Session = Depends(get_db),
-) -> GroupPaymentResponse:
+) -> GroupPaymentResponse | CreatePaymentIntentionResponse:
+    """Pay a group session share via Paymob or dev-confirm fallback."""
     request = get_group_request_or_404(db, request_id)
     if request.status != "waiting_payment":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This group is not waiting for participant payments.")
@@ -328,6 +334,9 @@ def pay_group_share(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This group does not have a valid price.")
 
     platform_fee = (amount * PLATFORM_FEE_RATE).quantize(Decimal("0.01"))
+    total_amount = amount + platform_fee
+    payment_method = payload.payment_method if payload else "paymob_card"
+
     payment = Payment(
         session_id=session.id,
         request_id=request.id,
@@ -335,50 +344,83 @@ def pay_group_share(
         instructor_id=request.accepted_instructor_id,
         amount=amount,
         platform_fee=platform_fee,
-        total_amount=amount + platform_fee,
-        status="held",
-        payment_method=payload.payment_method if payload else "card_simulation",
-        paid_at=datetime.now(timezone.utc),
+        total_amount=total_amount,
+        status="pending",
+        payment_method=payment_method,
     )
     db.add(payment)
     db.flush()
-    participant.payment_status = "held"
     participant.payment_id = payment.id
 
-    wallet = get_or_create_wallet(db, request.accepted_instructor_id)
-    wallet.pending_balance += amount
-    db.add(WalletTransaction(instructor_id=request.accepted_instructor_id, payment_id=payment.id, type="hold", amount=amount, status="completed"))
+    paymob_configured = bool(settings.paymob_secret_key and settings.paymob_integration_id)
 
-    create_notification(
-        db,
-        user_id=request.group_owner_id,
-        type="group_participant_paid",
-        title="Group participant paid",
-        message=f"{current_user.full_name} paid their group session share.",
-        link_url=f"/student/group-requests/{request.id}",
-    )
+    if paymob_configured:
+        try:
+            intention = paymob_service.create_intention(
+                amount_egp=float(total_amount),
+                session_id=session.id,
+                payment_id=payment.id,
+                user=current_user,
+                item_name=f"Group Session: {request.title or 'Learning Session'}",
+            )
+            payment.paymob_intention_id = str(intention.get("id", ""))
+            client_secret = intention.get("client_secret", "")
+            checkout_url = paymob_service.get_checkout_url(client_secret)
+        except Exception as exc:
+            logger.error("Paymob intention failed for group request %s: %s", request.id, exc)
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=f"Failed to create payment with Paymob: {exc}",
+            ) from exc
 
-    participants = get_active_participants(db, request.id)
-    if all_active_participants_paid(participants):
-        request.status = "paid"
-        session.status = "ready"
-        recipient_ids = [participant.student_id for participant in participants] + [request.accepted_instructor_id]
-        create_notifications(
+        db.commit()
+        return CreatePaymentIntentionResponse(
+            payment_id=payment.id,
+            checkout_url=checkout_url,
+            client_secret=client_secret,
+        )
+    else:
+        # Dev mode: instantly hold payment
+        payment.status = "held"
+        payment.paid_at = datetime.now(timezone.utc)
+        payment.paymob_transaction_id = f"dev_group_{payment.id}"
+        participant.payment_status = "held"
+
+        wallet = get_or_create_wallet(db, request.accepted_instructor_id)
+        wallet.pending_balance += amount
+        db.add(WalletTransaction(instructor_id=request.accepted_instructor_id, payment_id=payment.id, type="hold", amount=amount, status="completed"))
+
+        create_notification(
             db,
-            recipient_ids,
-            type="group_all_paid",
-            title="Group session is ready",
-            message="All active group participants have paid. The session is ready.",
-            link_url=f"/student/sessions/{session.id}",
+            user_id=request.group_owner_id,
+            type="group_participant_paid",
+            title="Group participant paid",
+            message=f"{current_user.full_name} paid their group session share.",
+            link_url=f"/student/group-requests/{request.id}",
         )
 
-    db.commit()
-    db.refresh(payment)
-    payment_response = PaymentResponse.model_validate(payment).model_copy(
-        update={
-            "request_title": request.title,
-            "student_name": current_user.full_name,
-            "instructor_name": request.accepted_instructor.full_name if request.accepted_instructor else None,
-        }
-    )
-    return GroupPaymentResponse(payment=payment_response, group_request=group_response(db, get_group_request_or_404(db, request.id), current_user))
+        participants = get_active_participants(db, request.id)
+        if all_active_participants_paid(participants):
+            request.status = "paid"
+            session.status = "ready"
+            recipient_ids = [participant.student_id for participant in participants] + [request.accepted_instructor_id]
+            create_notifications(
+                db,
+                recipient_ids,
+                type="group_all_paid",
+                title="Group session is ready",
+                message="All active group participants have paid. The session is ready.",
+                link_url=f"/student/sessions/{session.id}",
+            )
+
+        db.commit()
+        db.refresh(payment)
+        payment_response = PaymentResponse.model_validate(payment).model_copy(
+            update={
+                "request_title": request.title,
+                "student_name": current_user.full_name,
+                "instructor_name": request.accepted_instructor.full_name if request.accepted_instructor else None,
+            }
+        )
+        return GroupPaymentResponse(payment=payment_response, group_request=group_response(db, get_group_request_or_404(db, request.id), current_user))
