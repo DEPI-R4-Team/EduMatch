@@ -67,7 +67,7 @@ export function HowItWorks() {
                       </span>
                     </div>
                     <StepVisual type={step.visual} />
-                    <div className="mt-5 space-y-2">
+                    <div className="mt-6 space-y-2">
                       <h3 className="text-headline-md font-bold text-on-background">{step.title}</h3>
                       <p className="text-body-sm text-on-surface-variant">{step.description}</p>
                     </div>
@@ -98,13 +98,15 @@ function StepVisual({ type }: { type: HowItWorksStep["visual"] }) {
 
   if (type === "applications") {
     return (
-      <div className="h-36 space-y-3 rounded-2xl border border-outline-variant bg-background/45 p-4">
-        {[0, 1, 2].map((item) => (
-          <div key={item} className="landing-feature-preview flex items-center justify-between rounded-xl border border-outline-variant bg-surface-container px-3 py-2">
-            <span className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-secondary" />
-            <Send className="h-4 w-4 text-primary" />
-          </div>
-        ))}
+      <div className="relative h-52 overflow-hidden rounded-2xl border border-outline-variant bg-background/45 p-4">
+        <div className="space-y-3">
+          {[0, 1, 2].map((item) => (
+            <div key={item} className="landing-feature-preview flex items-center justify-between rounded-xl border border-outline-variant bg-surface-container px-3 py-2">
+              <span className="h-7 w-7 rounded-full bg-gradient-to-br from-primary to-secondary" />
+              <Send className="h-4 w-4 text-primary" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
