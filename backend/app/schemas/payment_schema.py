@@ -5,16 +5,23 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
 PaymentStatus = Literal["pending", "held", "released", "refunded", "cancelled", "disputed"]
-PaymentMethod = Literal["card_simulation", "wallet_simulation", "cash_simulation"]
+PaymentMethod = Literal[
+    "paymob_card",
+    "paymob_wallet",
+    # Legacy simulation methods (kept for backwards compatibility with existing data)
+    "card_simulation",
+    "wallet_simulation",
+    "cash_simulation",
+]
 
 
 class PaymentCreate(BaseModel):
     session_id: int
-    payment_method: PaymentMethod = "card_simulation"
+    payment_method: PaymentMethod = "paymob_card"
 
 
 class SimulatePaymentRequest(BaseModel):
-    payment_method: PaymentMethod = "card_simulation"
+    payment_method: PaymentMethod = "paymob_card"
 
 
 class PaymentResponse(BaseModel):
@@ -29,7 +36,10 @@ class PaymentResponse(BaseModel):
     platform_fee: Decimal
     total_amount: Decimal
     status: PaymentStatus
-    payment_method: PaymentMethod
+    payment_method: str
+    paymob_intention_id: str | None = None
+    paymob_transaction_id: str | None = None
+    paymob_order_id: str | None = None
     paid_at: datetime | None = None
     released_at: datetime | None = None
     refunded_at: datetime | None = None
@@ -43,3 +53,23 @@ class PaymentResponse(BaseModel):
 class PaymentDetailResponse(PaymentResponse):
     session_status: str | None = None
     request_status: str | None = None
+
+
+class CreatePaymentIntentionResponse(BaseModel):
+    """Returned to the frontend after creating a Paymob payment intention."""
+
+    payment_id: int
+    checkout_url: str
+    client_secret: str
+
+
+class PaymobCallbackData(BaseModel):
+    """Subset of the Paymob webhook callback ``obj`` field we care about."""
+
+    model_config = ConfigDict(extra="allow")
+
+    id: int
+    success: bool
+    amount_cents: int
+    order: dict | None = None
+    pending: bool = False

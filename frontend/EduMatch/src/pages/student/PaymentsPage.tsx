@@ -1,8 +1,10 @@
 import {
   BadgeDollarSign,
   CircleDollarSign,
+  GraduationCap,
   RefreshCw,
   ShieldCheck,
+  WalletCards,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -249,6 +251,31 @@ export function PaymentsPage() {
               </ol>
             </section>
 
+            <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+              <div className="flex items-start gap-md">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary/15 text-secondary">
+                  <GraduationCap className="size-5" />
+                </div>
+                <div>
+                  <h2 className="text-headline-md text-zinc-100">Group Session Payments</h2>
+                  <p className="mt-sm text-body-sm text-zinc-400">
+                    Group payments use the same Paymob checkout flow. Each participant pays their
+                    share individually.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-lg border border-tertiary/30 bg-tertiary/10 p-lg">
+              <div className="mb-sm flex items-center gap-sm text-tertiary">
+                <WalletCards className="size-5" />
+                <h2 className="text-headline-md">Paymob Test Mode</h2>
+              </div>
+              <p className="text-body-sm text-zinc-400">
+                Payments are processed through Paymob in test mode. No real money is charged.
+                Use test card numbers to simulate transactions.
+              </p>
+            </section>
           </aside>
         </div>
       </div>

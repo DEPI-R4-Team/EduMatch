@@ -6,6 +6,7 @@ type OrderSummaryCardProps = {
   totalAmount: number;
   currency: string;
   paymentStatus: PaymentStatus;
+  isProcessing?: boolean;
   onPayNow: () => void;
 };
 
@@ -15,9 +16,11 @@ export function OrderSummaryCard({
   totalAmount,
   currency,
   paymentStatus,
+  isProcessing,
   onPayNow,
 }: OrderSummaryCardProps) {
-  const paymentHeld = paymentStatus === "held" || paymentStatus === "released";
+  const paymentHeld = paymentStatus === "held";
+  const paymentReleased = paymentStatus === "released";
 
   return (
     <aside className="sticky top-lg rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
@@ -51,11 +54,11 @@ export function OrderSummaryCard({
 
       <button
         className="mt-lg inline-flex h-11 w-full items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-        disabled={paymentHeld}
+        disabled={paymentHeld || paymentReleased || isProcessing}
         onClick={onPayNow}
         type="button"
       >
-        {paymentStatus === "released" ? "Payment Released" : paymentHeld ? "Payment Held" : "Pay Now"}
+        {paymentReleased ? "Payment Released" : paymentHeld ? "Payment Held" : isProcessing ? "Processing..." : "Pay with Paymob"}
       </button>
       <p className="mt-sm text-center text-label-md text-zinc-400">
         Funds are held in escrow.

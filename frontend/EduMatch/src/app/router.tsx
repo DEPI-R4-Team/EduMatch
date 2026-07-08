@@ -33,6 +33,7 @@ const SessionsPage = lazy(() => import("@/pages/student/SessionsPage").then((m) 
 const SessionDetailsPage = lazy(() => import("@/pages/student/SessionDetailsPage").then((m) => ({ default: m.SessionDetailsPage })));
 const PaymentsPage = lazy(() => import("@/pages/student/PaymentsPage").then((m) => ({ default: m.PaymentsPage })));
 const PaymentConfirmationPage = lazy(() => import("@/pages/student/PaymentConfirmationPage").then((m) => ({ default: m.PaymentConfirmationPage })));
+const PaymentCallbackPage = lazy(() => import("@/pages/student/PaymentCallbackPage").then((m) => ({ default: m.PaymentCallbackPage })));
 const StudentReviewsPage = lazy(() => import("@/pages/student/StudentReviewsPage").then((m) => ({ default: m.StudentReviewsPage })));
 const ProfilePage = lazy(() => import("@/pages/student/ProfilePage").then((m) => ({ default: m.ProfilePage })));
 const StudentSettingsPage = lazy(() => import("@/pages/student/StudentSettingsPage").then((m) => ({ default: m.StudentSettingsPage })));
@@ -98,6 +99,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.STUDENT.SESSION_DETAILS, element: <SessionDetailsPage /> },
           { path: ROUTES.STUDENT.PAYMENTS, element: <PaymentsPage /> },
           { path: ROUTES.STUDENT.PAYMENT_CONFIRMATION, element: <PaymentConfirmationPage /> },
+          { path: ROUTES.STUDENT.PAYMENT_CALLBACK, element: <PaymentCallbackPage /> },
           { path: ROUTES.STUDENT.REVIEWS, element: <StudentReviewsPage /> },
           { path: ROUTES.STUDENT.PROFILE, element: <ProfilePage /> },
           { path: ROUTES.STUDENT.SETTINGS, element: <StudentSettingsPage /> },

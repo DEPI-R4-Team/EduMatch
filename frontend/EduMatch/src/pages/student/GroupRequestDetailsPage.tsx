@@ -15,6 +15,7 @@ import {
   leaveGroupRequest,
   payGroupRequest,
 } from "@/services/groupRequests.service";
+import { devConfirmPayment, getPaymentStatus } from "@/services/payments.service";
 import type { GroupRequest } from "@/types/groupRequest";
 
 function money(value: string | null) {
@@ -38,6 +39,7 @@ export function GroupRequestDetailsPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [pollingPaymentId, setPollingPaymentId] = useState<number | null>(null);
 
   const loadGroup = useCallback(async () => {
     if (!id) return;
@@ -62,6 +64,45 @@ export function GroupRequestDetailsPage() {
   }, [id, user?.id]);
 
   useEffect(() => {
+    if (!pollingPaymentId) return;
+
+    let cancelled = false;
+    let attempts = 0;
+    const maxAttempts = 60; // 60 x 2s = 120s max polling
+
+    const poll = async () => {
+      while (!cancelled && attempts < maxAttempts) {
+        attempts++;
+        try {
+          const updated = await getPaymentStatus(pollingPaymentId);
+          if (updated.status !== "pending") {
+            setPollingPaymentId(null);
+            setActionLoading(false);
+            setNotice("Payment verified successfully.");
+            await loadGroup();
+            return;
+          }
+        } catch {
+          // ignore polling errors
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+      
+      if (!cancelled && attempts >= maxAttempts) {
+        setPollingPaymentId(null);
+        setActionLoading(false);
+        setNotice("Stopped waiting for payment. Please refresh if you completed it.");
+      }
+    };
+
+    void poll();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pollingPaymentId, loadGroup]);
+
+  useEffect(() => {
     void loadGroup();
   }, [loadGroup]);
 
@@ -69,12 +110,20 @@ export function GroupRequestDetailsPage() {
     setActionLoading(true);
     setNotice("");
     try {
-      await action();
+      const result = await action();
+      // Handle Paymob checkout redirect
+      if (result && typeof result === "object" && "checkout_url" in result) {
+        const paymentResult = result as { checkout_url: string; payment_id: number };
+        window.location.href = paymentResult.checkout_url;
+        setNotice("Redirecting to Paymob...");
+        setPollingPaymentId(paymentResult.payment_id);
+        return; // actionLoading remains true while polling
+      }
       setNotice(success);
       await loadGroup();
+      setActionLoading(false);
     } catch (err) {
       setNotice(parseApiError(err));
-    } finally {
       setActionLoading(false);
     }
   }
@@ -111,6 +160,27 @@ export function GroupRequestDetailsPage() {
         <section className="space-y-lg">
           {error ? <ErrorState message={error} /> : null}
           {notice ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{notice}</p> : null}
+          {import.meta.env.DEV && pollingPaymentId && (
+            <button
+              className="inline-flex h-9 items-center justify-center rounded-md bg-secondary px-sm text-body-sm font-medium text-on-secondary hover:bg-secondary/90"
+              onClick={async () => {
+                try {
+                  const confirmed = await devConfirmPayment(pollingPaymentId);
+                  if (confirmed.status === "held" || confirmed.status === "released") {
+                    setPollingPaymentId(null);
+                    setActionLoading(false);
+                    setNotice("Payment verified successfully via Dev Mode.");
+                    await loadGroup();
+                  }
+                } catch (err) {
+                  console.error("Dev confirm failed", err);
+                }
+              }}
+              type="button"
+            >
+              Dev: Simulate Webhook Success
+            </button>
+          )}
 
           <article className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
             <h2 className="text-headline-md text-zinc-100">Group Details</h2>
@@ -191,7 +261,7 @@ export function GroupRequestDetailsPage() {
               {canPay ? (
                 <button className="inline-flex h-10 w-full items-center justify-center gap-xs rounded-md bg-secondary text-body-sm font-medium text-on-secondary hover:bg-secondary/90 disabled:opacity-50" disabled={actionLoading} onClick={() => void runAction(() => payGroupRequest(group.id), "Your share is now held in escrow.")} type="button">
                   <WalletCards className="size-4" />
-                  Pay {money(payableAmount)}
+                  Pay My Share via Paymob
                 </button>
               ) : null}
 
