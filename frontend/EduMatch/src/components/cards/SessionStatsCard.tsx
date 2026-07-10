@@ -25,17 +25,17 @@ export function SessionStatsCard({ loading = false, sessions }: SessionStatsCard
   }, [sessions]);
 
   return (
-    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
-      <h2 className="text-headline-md text-zinc-100">Session Stats</h2>
-      <div className="mt-md grid grid-cols-2 gap-sm">
+    <section className="rounded-2xl border border-[#27272A] bg-[#18181B] p-6">
+      <h2 className="mb-4 text-lg font-bold text-zinc-100">Session Stats</h2>
+      <div className="grid grid-cols-2 gap-4">
         {statMeta.map((stat) => {
           const Icon = stat.icon;
 
           return (
-            <div className="rounded-md border border-[#27272A] bg-[#121214] p-md" key={stat.key}>
-              <Icon className={`mb-sm size-5 ${stat.className}`} />
-              <p className="text-headline-md text-zinc-100">{loading ? "-" : stats[stat.key]}</p>
-              <p className="text-body-sm text-zinc-400">{stat.label}</p>
+            <div className="flex flex-col rounded-xl border border-[#27272A] bg-[#121214] p-4" key={stat.key}>
+              <Icon className={`size-5 ${stat.className}`} />
+              <p className="mt-2 text-2xl font-bold text-zinc-100">{loading ? "-" : stats[stat.key]}</p>
+              <p className="text-xs text-zinc-400">{stat.label}</p>
             </div>
           );
         })}

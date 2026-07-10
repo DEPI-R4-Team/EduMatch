@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import case, select
 from sqlalchemy.orm import Session
 
 from app.models import Payment, Session as LearningSession
@@ -56,13 +56,31 @@ def get_pending_session_payment(db: Session, session_id: int, student_id: int | 
     return db.scalar(statement.order_by(Payment.created_at.desc(), Payment.id.desc()))
 
 
+def get_authoritative_session_payment(db: Session, session_id: int, student_id: int | None = None) -> Payment | None:
+    """Return the payment attempt that should represent the session's current state.
+
+    Successful escrow states always win over pending or failed attempts. This
+    prevents a stale pending/failed checkout from hiding a later successful
+    payment when the frontend asks for session payment status.
+    """
+    statement = select(Payment).where(Payment.session_id == session_id)
+    if student_id is not None:
+        statement = statement.where(Payment.student_id == student_id)
+    status_rank = case(
+        (Payment.status.in_(PAYMENT_SUCCESS_STATES), 0),
+        (Payment.status.in_(PAYMENT_PENDING_STATES), 1),
+        else_=2,
+    )
+    return db.scalar(statement.order_by(status_rank, Payment.created_at.desc(), Payment.id.desc()))
+
+
 def calculate_payment_amounts(amount: Decimal) -> tuple[Decimal, Decimal]:
     platform_fee = (amount * Decimal("0.10")).quantize(Decimal("0.01"))
     return platform_fee, amount + platform_fee
 
 
 def get_session_payment_state(db: Session, session: LearningSession, student_id: int | None = None) -> SessionPaymentState:
-    latest_payment = get_latest_session_payment(db, session.id, student_id)
+    latest_payment = get_authoritative_session_payment(db, session.id, student_id)
     successful_payment = get_successful_session_payment(db, session.id, student_id)
     pending_payment = get_pending_session_payment(db, session.id, student_id)
     latest_status = latest_payment.status if latest_payment else None

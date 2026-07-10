@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.config import settings
@@ -21,6 +21,7 @@ from app.services.notification_service import create_notification, create_notifi
 from app.services.payment_service import get_or_create_wallet, refund_held_payment, release_held_payment
 from app.services.payment_state_service import (
     calculate_payment_amounts,
+    get_authoritative_session_payment,
     get_session_payment_state,
 )
 from app.services import paymob_service
@@ -58,6 +59,26 @@ def _extract_paymob_order_extras(obj: dict) -> dict:
         extras = order.get("extras") or {}
         return extras if isinstance(extras, dict) else {}
     return {}
+
+
+def _as_dict(value: object) -> dict:
+    return value if isinstance(value, dict) else {}
+
+
+def _payment_return_url(payment_id: int, session_id: int) -> str:
+    return f"{settings.frontend_url.rstrip('/')}/payment/result?payment_id={payment_id}&session_id={session_id}"
+
+
+def _paymob_notification_url() -> str | None:
+    if not settings.backend_url:
+        logger.warning("Paymob notification URL is not configured. Set BACKEND_URL to a public backend URL for webhooks.")
+        return None
+    return f"{settings.backend_url.rstrip('/')}/payments/paymob/callback"
+
+
+def _trace(message: str, **fields: object) -> None:
+    details = " ".join(f"{key}={value}" for key, value in fields.items())
+    logger.info("[PAYMENT-TRACE] %s%s", message, f" {details}" if details else "")
 
 
 def serialize_payment(payment: Payment) -> PaymentDetailResponse:
@@ -209,6 +230,16 @@ async def pay_for_session(
         db.add(payment)
         db.flush()
 
+    _trace(
+        "PAYMENT CREATED",
+        local_payment_id=payment.id,
+        session_id=session.id,
+        initial_status=payment.status,
+        gateway_order_id=payment.paymob_order_id or "none",
+        gateway_intention_id=payment.paymob_intention_id or "none",
+        gateway_reference=f"payment:{payment.id}:session:{session.id}",
+    )
+
     if session.status == "ready" and not payment_state.session_access_allowed:
         session.status = "waiting_payment"
 
@@ -219,11 +250,20 @@ async def pay_for_session(
         )
 
     try:
+        return_url = _payment_return_url(payment.id, session.id)
         checkout = await create_iframe_checkout(
             PaymobCheckoutRequest(
                 amount=total_amount,
                 currency="EGP",
                 billing_data=paymob_service.build_billing_data(current_user),
+                return_url=return_url,
+                notification_url=_paymob_notification_url(),
+                metadata={
+                    "payment_id": str(payment.id),
+                    "session_id": str(session.id),
+                    "request_id": str(session.request_id),
+                    "student_id": str(current_user.id),
+                },
                 items=[
                     PaymobCheckoutItem(
                         name=session.request.title or "Learning Session",
@@ -237,6 +277,15 @@ async def pay_for_session(
         payment.paymob_order_id = str(checkout["order_id"])
         payment.paymob_intention_id = None
         payment_token = checkout["payment_token"]
+        _trace(
+            "PAYMOB CHECKOUT CREATED",
+            local_payment_id=payment.id,
+            session_id=session.id,
+            initial_status=payment.status,
+            gateway_order_id=payment.paymob_order_id or "none",
+            gateway_intention_id=payment.paymob_intention_id or "none",
+            gateway_reference=f"payment:{payment.id}:session:{session.id}",
+        )
     except (PaymobProviderError, PaymobNetworkError, RuntimeError) as exc:
         logger.error("Paymob checkout failed for session %s: %s", session.id, exc)
         db.rollback()
@@ -247,6 +296,13 @@ async def pay_for_session(
 
     db.commit()
     db.refresh(payment)
+    _trace(
+        "PAYMENT CREATION COMMIT COMPLETE",
+        local_payment_id=payment.id,
+        session_id=session.id,
+        database_status_after_commit=payment.status,
+        gateway_order_id=payment.paymob_order_id or "none",
+    )
     return CreatePaymentIntentionResponse(
         payment_id=payment.id,
         checkout_url=checkout["iframe_url"],
@@ -264,24 +320,68 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
     Paymob sends the HMAC in the query string ``?hmac=...`` and the transaction
     data in the POST body under ``obj``.
     """
-    # Get HMAC from query params
-    received_hmac = request.query_params.get("hmac", "")
     body = await request.json()
+    received_hmac = request.query_params.get("hmac", "") or str(body.get("hmac", "") or "")
+    callback_type = body.get("type")
+    obj = body.get("obj", body)
+    if not isinstance(obj, dict):
+        logger.warning("[PAYMOB] Invalid callback payload type=%s", type(obj).__name__)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Paymob callback payload.")
 
-    # Verify HMAC
-    if not paymob_service.verify_hmac(body, received_hmac):
-        logger.warning("Paymob webhook HMAC verification failed")
+    transaction_id = str(obj.get("id", ""))
+    order_id = _extract_paymob_order_id(obj)
+    _trace(
+        "CALLBACK RECEIVED",
+        request_method=request.method,
+        callback_type=callback_type or "none",
+        transaction_id=transaction_id or "none",
+        order_id=order_id or "none",
+        reference="unknown",
+    )
+    logger.info(
+        "[PAYMOB] Transaction callback received type=%s transaction_id=%s order_id=%s hmac_present=%s",
+        callback_type,
+        transaction_id,
+        order_id,
+        bool(received_hmac),
+    )
+
+    hmac_valid = paymob_service.verify_hmac(body, received_hmac)
+    _trace(
+        "CALLBACK AUTH",
+        hmac_present=bool(received_hmac),
+        hmac_valid=hmac_valid,
+        transaction_id=transaction_id or "none",
+        order_id=order_id or "none",
+    )
+    logger.info("[PAYMOB] HMAC valid=%s transaction_id=%s order_id=%s", hmac_valid, transaction_id, order_id)
+    if not hmac_valid:
+        logger.warning("[PAYMOB] Webhook HMAC verification failed transaction_id=%s order_id=%s", transaction_id, order_id)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid HMAC signature.")
 
-    obj = body.get("obj", body)
-    transaction_id = str(obj.get("id", ""))
     success = _as_bool(obj.get("success", False))
-    order_id = _extract_paymob_order_id(obj)
-    payment_key_claims = obj.get("payment_key_claims", {}) or {}
-    claim_extras = payment_key_claims.get("extra", {}) or {}
+    payment_key_claims = _as_dict(obj.get("payment_key_claims", {}))
+    claim_extras = _as_dict(payment_key_claims.get("extra", {}))
     order_extras = _extract_paymob_order_extras(obj)
     payment_id_str = str(claim_extras.get("payment_id") or order_extras.get("payment_id") or "")
     paymob_intention_id = str(obj.get("intention", {}).get("id", "") or payment_key_claims.get("intention_id", ""))
+    _trace(
+        "CALLBACK REFERENCES",
+        transaction_id=transaction_id or "none",
+        order_id=order_id or "none",
+        reference=payment_id_str or paymob_intention_id or order_id or "none",
+        payment_id=payment_id_str or "none",
+        intention_id=paymob_intention_id or "none",
+        success=success,
+    )
+    logger.info(
+        "[PAYMOB] Callback references transaction_id=%s order_id=%s local_payment_ref=%s intention_id=%s success=%s",
+        transaction_id,
+        order_id,
+        payment_id_str or "none",
+        paymob_intention_id or "none",
+        success,
+    )
 
     # Find the matching payment
     # First try by intention ID, then by order
@@ -295,6 +395,14 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
                 selectinload(Payment.session).selectinload(LearningSession.request),
             )
         )
+        _trace(
+            "PAYMENT LOOKUP",
+            lookup_field="payment_id",
+            lookup_value=payment_id_str,
+            payment_found=payment is not None,
+            local_payment_id=payment.id if payment else "none",
+            session_id=payment.session_id if payment else "none",
+        )
 
     if payment is None and paymob_intention_id:
         payment = db.scalar(
@@ -304,6 +412,14 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
             .options(
                 selectinload(Payment.session).selectinload(LearningSession.request),
             )
+        )
+        _trace(
+            "PAYMENT LOOKUP",
+            lookup_field="paymob_intention_id",
+            lookup_value=paymob_intention_id,
+            payment_found=payment is not None,
+            local_payment_id=payment.id if payment else "none",
+            session_id=payment.session_id if payment else "none",
         )
 
     if payment is None and order_id:
@@ -315,11 +431,19 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
                 selectinload(Payment.session).selectinload(LearningSession.request),
             )
         )
+        _trace(
+            "PAYMENT LOOKUP",
+            lookup_field="paymob_order_id",
+            lookup_value=order_id,
+            payment_found=payment is not None,
+            local_payment_id=payment.id if payment else "none",
+            session_id=payment.session_id if payment else "none",
+        )
 
     if payment is None:
         # Fall back by session only when it uniquely identifies one pending payment.
         session_id_str = str(claim_extras.get("session_id") or order_extras.get("session_id") or "")
-        if session_id_str:
+        if session_id_str.isdigit():
             pending_payments = db.scalars(
                 select(Payment)
                 .where(
@@ -333,12 +457,29 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
             ).all()
             if len(pending_payments) == 1:
                 payment = pending_payments[0]
+            _trace(
+                "PAYMENT LOOKUP",
+                lookup_field="session_id_pending_unique",
+                lookup_value=session_id_str,
+                payment_found=payment is not None,
+                local_payment_id=payment.id if payment else "none",
+                session_id=payment.session_id if payment else "none",
+            )
+        elif session_id_str:
+            logger.warning("[PAYMOB] Ignoring non-numeric session reference from callback: %s", session_id_str)
 
     if payment is None:
-        logger.warning("No matching payment found for Paymob transaction %s", transaction_id)
+        logger.warning("[PAYMOB] Payment lookup failed transaction_id=%s order_id=%s", transaction_id, order_id)
         return {"status": "ignored", "reason": "no matching payment"}
 
-    # Update payment with Paymob identifiers
+    old_status = payment.status
+    logger.info(
+        "[PAYMOB] Payment lookup result payment_id=%s session_id=%s old_status=%s",
+        payment.id,
+        payment.session_id,
+        old_status,
+    )
+
     payment.paymob_transaction_id = transaction_id
     payment.paymob_order_id = order_id
 
@@ -358,25 +499,85 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
         )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payment amount mismatch.")
 
-    if success and payment.status == "pending":
-        session = payment.session
-        if session:
-            _hold_payment_and_update_wallet(db, payment, session)
-        else:
-            payment.status = "held"
-            payment.paid_at = datetime.now(timezone.utc)
+    try:
+        if success and payment.status == "pending":
+            session = payment.session
+            if session:
+                _hold_payment_and_update_wallet(db, payment, session)
+            else:
+                payment.status = "held"
+                payment.paid_at = datetime.now(timezone.utc)
+            _trace(
+                "STATUS UPDATE",
+                local_payment_id=payment.id,
+                session_id=payment.session_id,
+                old_status=old_status,
+                new_status=payment.status,
+            )
+
+            db.commit()
+            database_status = db.scalar(select(Payment.status).where(Payment.id == payment.id))
+            _trace(
+                "COMMIT COMPLETE",
+                payment_id=payment.id,
+                database_status_after_commit=database_status or "missing",
+            )
+            logger.info(
+                "[PAYMOB] Status transition payment_id=%s session_id=%s %s -> %s; transaction committed successfully",
+                payment.id,
+                payment.session_id,
+                old_status,
+                payment.status,
+            )
+            return {"status": "success", "payment_id": payment.id}
+        if not success and payment.status == "pending":
+            payment.status = "cancelled"
+            _trace(
+                "STATUS UPDATE",
+                local_payment_id=payment.id,
+                session_id=payment.session_id,
+                old_status=old_status,
+                new_status=payment.status,
+            )
+            db.commit()
+            database_status = db.scalar(select(Payment.status).where(Payment.id == payment.id))
+            _trace(
+                "COMMIT COMPLETE",
+                payment_id=payment.id,
+                database_status_after_commit=database_status or "missing",
+            )
+            logger.info(
+                "[PAYMOB] Status transition payment_id=%s session_id=%s %s -> %s; transaction committed successfully",
+                payment.id,
+                payment.session_id,
+                old_status,
+                payment.status,
+            )
+            return {"status": "failed", "payment_id": payment.id}
 
         db.commit()
-        logger.info("Payment %s marked as held via Paymob webhook", payment.id)
-        return {"status": "success", "payment_id": payment.id}
-    elif not success and payment.status == "pending":
-        payment.status = "cancelled"
-        db.commit()
-        logger.info("Payment %s marked as cancelled via Paymob webhook", payment.id)
-        return {"status": "failed", "payment_id": payment.id}
-    else:
-        logger.info("Payment %s already processed (status=%s), ignoring webhook", payment.id, payment.status)
+        database_status = db.scalar(select(Payment.status).where(Payment.id == payment.id))
+        _trace(
+            "COMMIT COMPLETE",
+            payment_id=payment.id,
+            database_status_after_commit=database_status or "missing",
+        )
+        logger.info(
+            "[PAYMOB] Payment already processed payment_id=%s session_id=%s status=%s; no side effects repeated",
+            payment.id,
+            payment.session_id,
+            payment.status,
+        )
         return {"status": "already_processed", "payment_id": payment.id}
+    except Exception:
+        db.rollback()
+        logger.exception(
+            "[PAYMOB] Transaction processing failed payment_id=%s session_id=%s old_status=%s",
+            payment.id,
+            payment.session_id,
+            old_status,
+        )
+        raise
 
 
 @router.get("/{payment_id}/status", response_model=PaymentDetailResponse)
@@ -391,6 +592,14 @@ def get_payment_status(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found.")
     if current_user.role != "admin" and current_user.id not in {payment.student_id, payment.instructor_id}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot view this payment.")
+    _trace(
+        "STATUS GET",
+        requested_payment_id=payment_id,
+        requested_session_id=payment.session_id,
+        selected_payment_id=payment.id,
+        selected_payment_status=payment.status,
+        number_of_payment_attempts=db.scalar(select(func.count(Payment.id)).where(Payment.session_id == payment.session_id)) or 0,
+    )
     return serialize_payment(payment)
 
 
@@ -480,21 +689,22 @@ def get_payment_by_session(
     if current_user.role != "admin" and current_user.id not in {session.student_id, session.instructor_id}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot view this payment.")
 
-    statement = select(Payment).where(Payment.session_id == session_id)
-    if session.request is not None and session.request.request_type == "group" and current_user.role == "student":
-        statement = statement.where(Payment.student_id == current_user.id)
-    payment = db.scalar(
-        statement.order_by(Payment.created_at.desc()).options(
-            selectinload(Payment.session),
-            selectinload(Payment.request),
-            selectinload(Payment.student),
-            selectinload(Payment.instructor),
-        )
-    )
+    student_scope = current_user.id if session.request is not None and session.request.request_type == "group" and current_user.role == "student" else None
+    payment = get_authoritative_session_payment(db, session_id, student_scope)
+    if payment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found.")
+    payment = get_payment_with_details(db, payment.id)
     if payment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found.")
     if current_user.role != "admin" and current_user.id not in {payment.student_id, payment.instructor_id}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You cannot view this payment.")
+    _trace(
+        "STATUS GET",
+        requested_session_id=session_id,
+        selected_payment_id=payment.id,
+        selected_payment_status=payment.status,
+        number_of_payment_attempts=db.scalar(select(func.count(Payment.id)).where(Payment.session_id == session_id)) or 0,
+    )
     return serialize_payment(payment)
 
 

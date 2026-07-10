@@ -74,6 +74,7 @@ SECRET_KEY=your_strong_secret_key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 FRONTEND_URL=https://your-frontend-domain.vercel.app
+BACKEND_URL=https://your-backend-domain.com
 CORS_ORIGINS=https://your-frontend-domain.vercel.app,http://localhost:5173
 PAYMOB_API_KEY=your_paymob_test_api_key
 PAYMOB_INTEGRATION_ID=your_paymob_integration_id
@@ -85,11 +86,15 @@ Notes:
 
 - `SECRET_KEY` must be a strong random value.
 - `FRONTEND_URL` should match the deployed Vercel domain exactly.
+- `BACKEND_URL` must be the public deployed backend URL. Paymob uses it for the server callback:
+  `https://your-backend-domain.com/payments/paymob/callback`.
 - `CORS_ORIGINS` supports comma-separated origins.
 - Keep local origins in `CORS_ORIGINS` only if you need local frontend to call the deployed backend during testing.
 - Paymob iframe checkout uses `httpx`, which is declared in `backend/requirements.txt`.
 - If any Paymob iframe environment variable is set, the backend validates the full Paymob iframe configuration during startup.
 - Do not commit Paymob keys or HMAC secrets.
+- Do not configure Paymob server callbacks to a React frontend URL. The callback must reach the FastAPI backend.
+- For local Paymob testing, use a secure public tunnel or a deployed backend; Paymob cannot call `localhost` directly.
 
 Health check endpoint:
 

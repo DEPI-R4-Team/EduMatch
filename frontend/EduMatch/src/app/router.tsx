@@ -79,6 +79,7 @@ export const router = createBrowserRouter([
   {
     element: <ProtectedRoute allowedRoles={["student"]} />,
     children: [
+      { path: ROUTES.PAYMENT_RESULT, element: <PaymentCallbackPage /> },
       {
         element: <StudentDashboardLayout />,
         children: [

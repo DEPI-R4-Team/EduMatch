@@ -88,15 +88,15 @@ export function MiniCalendarCard({ detailsBasePath = "/student/sessions", sessio
   const selectedSessions = sessionsByDate.get(selectedKey) ?? [];
 
   return (
-    <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+    <section className="rounded-2xl border border-[#27272A] bg-[#18181B] p-6">
       <div className="flex items-center justify-between gap-md">
-        <h2 className="text-headline-md text-zinc-100">
+        <h2 className="text-lg font-bold text-zinc-100">
           {currentMonth.toLocaleDateString("en", { month: "long", year: "numeric" })}
         </h2>
         <div className="flex gap-xs">
           <button
             aria-label="Previous month"
-            className="flex size-8 items-center justify-center rounded-md border border-[#27272A] text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#27272A] text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
             onClick={() => setCurrentMonth((month) => addMonths(month, -1))}
             type="button"
           >
@@ -104,7 +104,7 @@ export function MiniCalendarCard({ detailsBasePath = "/student/sessions", sessio
           </button>
           <button
             aria-label="Next month"
-            className="flex size-8 items-center justify-center rounded-md border border-[#27272A] text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#27272A] text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
             onClick={() => setCurrentMonth((month) => addMonths(month, 1))}
             type="button"
           >
@@ -113,12 +113,15 @@ export function MiniCalendarCard({ detailsBasePath = "/student/sessions", sessio
         </div>
       </div>
 
-      <div className="mt-md grid grid-cols-7 gap-xs text-center">
+      <div className="mt-md grid grid-cols-7 gap-1 text-center">
         {weekdays.map((day, index) => (
-          <span className="text-label-md uppercase text-zinc-400" key={`${day}-${index}`}>
+          <span className="mb-2 text-xs font-semibold uppercase text-zinc-400" key={`${day}-${index}`}>
             {day}
           </span>
         ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-x-1 gap-y-2 text-center">
         {calendarDays.map((day) => {
           const key = localDateKey(day.date);
           const daySessions = sessionsByDate.get(key) ?? [];
@@ -128,10 +131,10 @@ export function MiniCalendarCard({ detailsBasePath = "/student/sessions", sessio
           return (
             <button
               className={cn(
-                "flex aspect-square flex-col items-center justify-center rounded-md text-body-sm transition",
+                "relative mx-auto flex h-8 w-8 flex-col items-center justify-center text-sm transition",
                 day.inCurrentMonth ? "text-zinc-400 hover:bg-[#27272A] hover:text-zinc-100" : "text-zinc-400/35",
-                isToday && "ring-1 ring-[#8b5cf6]/60",
-                isSelected && "bg-[#8b5cf6] text-zinc-100 hover:bg-[#7c3aed] hover:text-zinc-100",
+                isToday && "rounded-lg border border-[#8b5cf6]/50",
+                isSelected && "rounded-lg bg-[#8b5cf6] text-white hover:bg-[#7c3aed] hover:text-white",
               )}
               key={key}
               onClick={() => setSelectedDate(day.date)}
@@ -139,18 +142,14 @@ export function MiniCalendarCard({ detailsBasePath = "/student/sessions", sessio
             >
               <span>{day.date.getDate()}</span>
               {daySessions.length > 0 ? (
-                <span className="mt-1 flex gap-0.5">
-                  {daySessions.slice(0, 3).map((session) => (
-                    <span className={cn("size-1.5 rounded-full", statusDotClass(session.status))} key={session.id} />
-                  ))}
-                </span>
+                <span className={cn("absolute bottom-1 h-1 w-1 rounded-full", statusDotClass(daySessions[0].status))} />
               ) : null}
             </button>
           );
         })}
       </div>
 
-      <div className="mt-lg rounded-md border border-[#27272A] bg-[#121214] p-md">
+      <div className="mt-lg rounded-xl border border-[#27272A] bg-[#121214] p-4">
         <h3 className="text-body-sm font-medium text-zinc-100">
           Sessions on {formatSelectedDate(selectedDate)}
         </h3>

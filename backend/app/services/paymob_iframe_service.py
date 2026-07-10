@@ -96,6 +96,8 @@ async def create_iframe_checkout(payload: PaymobCheckoutRequest) -> dict[str, An
             }
             if payload.merchant_order_id:
                 order_payload["merchant_order_id"] = payload.merchant_order_id
+            if payload.metadata:
+                order_payload["extras"] = payload.metadata
 
             order_response = await client.post("/api/ecommerce/orders", json=order_payload)
             order_response.raise_for_status()
@@ -114,6 +116,12 @@ async def create_iframe_checkout(payload: PaymobCheckoutRequest) -> dict[str, An
                 "integration_id": settings.paymob_integration_id,
                 "lock_order_when_paid": "true",
             }
+            if payload.metadata:
+                payment_key_payload["extra"] = payload.metadata
+            if payload.return_url:
+                payment_key_payload["redirect_url"] = payload.return_url
+            if payload.notification_url:
+                payment_key_payload["notification_url"] = payload.notification_url
             key_response = await client.post("/api/acceptance/payment_keys", json=payment_key_payload)
             key_response.raise_for_status()
             payment_token = key_response.json().get("token")

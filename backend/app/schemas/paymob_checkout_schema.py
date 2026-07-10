@@ -33,6 +33,9 @@ class PaymobCheckoutRequest(BaseModel):
     billing_data: PaymobBillingData
     items: list[PaymobCheckoutItem] = Field(default_factory=list)
     merchant_order_id: str | None = Field(default=None, max_length=120)
+    return_url: str | None = Field(default=None, max_length=500)
+    notification_url: str | None = Field(default=None, max_length=500)
+    metadata: dict[str, str] = Field(default_factory=dict)
 
 
 class PaymobCheckoutResponse(BaseModel):

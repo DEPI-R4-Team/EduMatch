@@ -4,15 +4,18 @@ import {
   CalendarClock,
   Clock3,
   Filter,
+  MessageSquareText,
+  MonitorPlay,
+  RefreshCw,
   Search,
+  UserRound,
   Video,
+  WalletCards,
 } from "lucide-react";
 import { MiniCalendarCard } from "@/components/cards/MiniCalendarCard";
 import { SessionStatsCard } from "@/components/cards/SessionStatsCard";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { ErrorState } from "@/components/ui/ErrorState";
-import { LoadingState } from "@/components/ui/LoadingState";
 import { Input } from "@/components/ui/input";
+import { PaymentStatusBadge, type PaymentStatus } from "@/components/ui/PaymentStatusBadge";
 import { SessionStatusBadge } from "@/components/ui/SessionStatusBadge";
 import { cn } from "@/lib/utils";
 import { getMySessions, instructorCompleteSession } from "@/services/sessions.service";
@@ -33,6 +36,46 @@ function formatDate(value: string | null) {
     return "Not scheduled yet";
   }
   return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2);
+}
+
+function formatSessionType(session: Session) {
+  return session.session_type === "offline" ? "Offline" : "Online";
+}
+
+function formatSessionMode(session: Session) {
+  return session.session_mode === "group" ? "Group" : "Individual";
+}
+
+function paymentStatusFor(session: Session): PaymentStatus {
+  const status = session.payment_status;
+
+  if (
+    status === "held" ||
+    status === "released" ||
+    status === "refunded" ||
+    status === "pending" ||
+    status === "cancelled" ||
+    status === "disputed" ||
+    status === "expired" ||
+    status === "failed" ||
+    status === "unpaid"
+  ) {
+    return status;
+  }
+
+  return session.request_status === "waiting_payment" ? "pending" : "held";
+}
+
+function canMarkCompleted(session: Session) {
+  return session.status === "active" || session.status === "ready";
 }
 
 export function InstructorSessionsPage() {
@@ -87,26 +130,26 @@ export function InstructorSessionsPage() {
 
   return (
     <>
-      <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
-        <div className="flex flex-col gap-md xl:flex-row xl:items-start xl:justify-between">
+      <header className="sticky top-0 z-[60] border-b border-[#27272A] bg-[#09090B]/95 px-margin-mobile py-xl backdrop-blur-xl md:px-margin-desktop">
+        <div className="flex flex-col gap-lg xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-headline-lg text-zinc-100">Sessions</h1>
+            <h1 className="text-[2rem] font-bold leading-tight text-zinc-100 md:text-[2.25rem]">Scheduled Sessions</h1>
             <p className="mt-xs max-w-2xl text-body-sm text-zinc-400">
-              Manage your scheduled sessions with students.
+              Manage your upcoming teaching sessions and completed student meetings.
             </p>
           </div>
           <div className="flex w-full flex-col gap-sm sm:flex-row xl:w-auto">
-            <div className="relative min-w-0 flex-1 xl:w-[280px]">
+            <div className="relative min-w-0 flex-1 xl:w-[350px]">
               <Search className="pointer-events-none absolute left-md top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
               <Input
-                className="h-10 border-[#27272A] bg-[#18181B] pl-10 text-zinc-100"
+                className="h-12 rounded-xl border-[#27272A] bg-[#18181B] pl-11 text-zinc-100 placeholder:text-zinc-500"
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search sessions..."
                 value={searchTerm}
               />
             </div>
             <button
-              className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-[#27272A] bg-[#18181B] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
+              className="inline-flex h-12 items-center justify-center gap-xs rounded-xl border border-[#27272A] bg-[#18181B] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
               onClick={() => setShowFilterMenu((prev) => !prev)}
               type="button"
             >
@@ -114,7 +157,7 @@ export function InstructorSessionsPage() {
               Filter
             </button>
             {showFilterMenu && (
-              <div className="rounded-md border border-[#27272A] bg-[#18181B] p-xs sm:absolute sm:right-margin-desktop sm:top-24 sm:z-20 sm:w-44">
+              <div className="rounded-xl border border-[#27272A] bg-[#18181B] p-xs shadow-[0_10px_50px_rgba(0,0,0,0.45)] sm:absolute sm:right-margin-desktop sm:top-28 sm:z-[80] sm:w-44">
                 {filters.map((filter) => (
                   <button
                     className="block w-full rounded-md px-sm py-xs text-left text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
@@ -134,50 +177,125 @@ export function InstructorSessionsPage() {
         </div>
       </header>
 
-      <div className="grid gap-lg px-margin-mobile py-lg md:px-margin-desktop 2xl:grid-cols-[minmax(0,1fr)_360px]">
-        <main className="min-w-0 space-y-lg">
-        {notice ? <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">{notice}</p> : null}
-        {error ? <ErrorState message={error} /> : null}
-        {loading ? <LoadingState message="Loading sessions..." /> : null}
-
-        {nextSession ? (
-          <Link className="block rounded-lg border border-primary/30 bg-primary/10 p-lg transition hover:border-primary/50" to={`/instructor/sessions/${nextSession.id}`}>
-            <div className="flex flex-col gap-md sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-label-md uppercase text-primary">Next Session</p>
-                <h2 className="mt-xs text-headline-md text-zinc-100">{nextSession.request_title ?? "Learning Session"}</h2>
-                <p className="mt-xs text-body-sm text-zinc-400">Student: {nextSession.student_name ?? "Student"}</p>
-              </div>
-              <SessionStatusBadge status={nextSession.status} />
-            </div>
-            <div className="mt-md flex flex-wrap gap-md text-body-sm text-zinc-400">
-              <span className="flex items-center gap-xs">
-                <CalendarClock className="size-4" />
-                {formatDate(nextSession.scheduled_at)}
-              </span>
-              <span className="flex items-center gap-xs capitalize">
-                <Video className="size-4" />
-                {nextSession.session_type}
-              </span>
-            </div>
-          </Link>
+      <div className="px-margin-mobile py-xl md:px-margin-desktop">
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+          <div className="col-span-1 flex flex-col gap-6 lg:col-span-8">
+        {notice ? (
+          <p className="rounded-md border border-secondary/25 bg-secondary/10 px-md py-sm text-body-sm text-secondary">
+            {notice}
+          </p>
+        ) : null}
+        {error ? (
+          <p className="rounded-md border border-error/25 bg-error/10 px-md py-sm text-body-sm text-error">
+            {error}
+          </p>
         ) : null}
 
-        <section className="rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
+        {nextSession ? (
+          <section className="relative rounded-2xl border border-[#8b5cf6]/20 bg-[#18181B] p-6 shadow-lg">
+            <div className="flex flex-col gap-lg md:flex-row md:items-start md:justify-between">
+              <div className="flex min-w-0 gap-md">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#8b5cf6]/20 text-xl font-bold text-[#8b5cf6]">
+                  {getInitials(nextSession.student_name ?? "Student")}
+                </div>
+                <div className="min-w-0">
+                  <div className="mb-sm flex flex-wrap items-center gap-sm">
+                    <span className="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase text-blue-400">
+                      {formatDate(nextSession.scheduled_at)}
+                    </span>
+                    <SessionStatusBadge status={nextSession.status} />
+                  </div>
+                  <h2 className="text-[1.625rem] font-bold leading-tight text-zinc-100">
+                    {nextSession.request_title ?? "Learning Session"}
+                  </h2>
+                  <p className="mt-xs text-body-sm text-zinc-400">
+                    With {nextSession.student_name ?? "Student"} · {formatSessionMode(nextSession)} session
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-sm">
+                <Link
+                  className="inline-flex items-center justify-center gap-xs rounded-lg border border-[#27272A] bg-[#09090B] px-4 py-2 text-sm font-semibold text-blue-400 transition-colors hover:bg-[#27272A] hover:text-zinc-100"
+                  to={`/instructor/sessions/${nextSession.id}`}
+                >
+                  <RefreshCw className="size-4" />
+                  View
+                </Link>
+                <Link
+                  className="inline-flex items-center justify-center gap-xs rounded-lg border border-[#27272A] bg-[#09090B] px-4 py-2 text-sm font-semibold text-zinc-300 transition-colors hover:bg-[#27272A] hover:text-zinc-100"
+                  to={`/instructor/chat?sessionId=${nextSession.id}`}
+                >
+                  <MessageSquareText className="size-4" />
+                  Open Chat
+                </Link>
+                {canMarkCompleted(nextSession) ? (
+                  <button
+                    className="inline-flex items-center justify-center gap-xs rounded-lg border border-[#8b5cf6]/30 bg-[#8b5cf6]/10 px-4 py-2 text-sm font-semibold text-[#8b5cf6] transition-colors hover:bg-[#8b5cf6] hover:text-white"
+                    onClick={() => void handleMarkCompleted(nextSession.id)}
+                    type="button"
+                  >
+                    <Video className="size-4" />
+                    Mark Completed
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="flex flex-col gap-1 rounded-xl border border-[#27272A] bg-[#09090B] p-4">
+                <p className="flex items-center gap-2 text-xs text-zinc-400">
+                  <MonitorPlay className="size-4 text-secondary" />
+                  Type
+                </p>
+                <p className="text-sm font-semibold text-zinc-200">{formatSessionType(nextSession)}</p>
+              </div>
+              <div className="flex flex-col gap-1 rounded-xl border border-[#27272A] bg-[#09090B] p-4">
+                <p className="flex items-center gap-2 text-xs text-zinc-400">
+                  <CalendarClock className="size-4 text-secondary" />
+                  Status
+                </p>
+                <div>
+                  <SessionStatusBadge status={nextSession.status} />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 rounded-xl border border-[#27272A] bg-[#09090B] p-4">
+                <p className="flex items-center gap-2 text-xs text-zinc-400">
+                  <Video className="size-4 text-secondary" />
+                  Platform
+                </p>
+                <p className="text-sm font-semibold text-zinc-200">
+                  {formatSessionType(nextSession) === "Online" ? "Online meeting" : "Offline"}
+                </p>
+              </div>
+              <div className="flex flex-col gap-1 rounded-xl border border-[#27272A] bg-[#09090B] p-4">
+                <p className="flex items-center gap-2 text-xs text-zinc-400">
+                  <WalletCards className="size-4 text-secondary" />
+                  Payment
+                </p>
+                <div>
+                  <PaymentStatusBadge status={paymentStatusFor(nextSession)} />
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="rounded-2xl border border-[#27272A] bg-[#18181B] p-6">
           <div className="flex flex-col gap-md md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-label-md uppercase text-secondary">Sessions</p>
-              <h2 className="mt-xs text-headline-md text-zinc-100">My Sessions</h2>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#8b5cf6]">Sessions</p>
+              <h2 className="mt-xs text-xl font-bold text-zinc-100">Later This Week</h2>
             </div>
-            <div className="flex max-w-full gap-xs overflow-x-auto rounded-lg border border-[#27272A] bg-[#121214] p-xs">
+            <div className="flex max-w-full items-center gap-2 overflow-x-auto rounded-xl border border-[#27272A] bg-[#09090B] p-1">
               {filters.map((filter) => (
                 <button
                   aria-pressed={activeFilter === filter.value}
                   className={cn(
-                    "h-9 shrink-0 rounded-md px-md text-body-sm font-medium transition",
+                    "shrink-0 rounded-lg px-4 py-1.5 text-sm transition",
                     activeFilter === filter.value
-                      ? "bg-primary text-on-primary"
-                      : "text-zinc-400 hover:bg-[#27272A] hover:text-zinc-100",
+                      ? "bg-[#8b5cf6] text-white"
+                      : "text-zinc-400 hover:text-zinc-200",
                   )}
                   key={filter.value}
                   onClick={() => setActiveFilter(filter.value)}
@@ -190,48 +308,94 @@ export function InstructorSessionsPage() {
           </div>
 
           <div className="mt-lg space-y-md">
-            {loading ? null : visibleSessions.length > 0 ? (
+            {loading ? (
+              <div className="rounded-lg border border-dashed border-[#27272A] bg-[#121214] p-xl text-center">
+                <p className="text-body-sm text-zinc-400">Loading sessions...</p>
+              </div>
+            ) : visibleSessions.length > 0 ? (
               visibleSessions.map((session) => (
-                <div className="rounded-md border border-[#27272A] bg-[#121214] p-md" key={session.id}>
-                  <div className="flex flex-col gap-sm sm:flex-row sm:items-center sm:justify-between">
-                    <Link className="min-w-0 transition hover:text-primary" to={`/instructor/sessions/${session.id}`}>
-                      <p className="truncate text-body-md font-medium text-zinc-100">{session.request_title ?? "Learning Session"}</p>
-                      <p className="text-body-sm text-zinc-400">Student: {session.student_name ?? "Student"}</p>
-                    </Link>
-                    <div className="flex flex-wrap items-center gap-sm">
-                      <span className="flex items-center gap-xs text-body-sm text-zinc-400">
-                        <Clock3 className="size-4" />
-                        {formatDate(session.scheduled_at)}
-                      </span>
-                      <SessionStatusBadge status={session.status} />
+                <article
+                  className="mt-4 flex flex-col items-start justify-between gap-md rounded-xl border border-[#27272A] bg-[#121214] p-4 transition hover:border-primary/40 lg:flex-row"
+                  key={session.id}
+                >
+                  <div className="flex min-w-0 gap-md">
+                    <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#2b2b38] text-body-sm font-semibold text-zinc-100">
+                      {getInitials(session.student_name ?? "Student")}
+                    </div>
+                    <div className="min-w-0">
+                      <Link className="transition hover:text-primary" to={`/instructor/sessions/${session.id}`}>
+                        <h3 className="truncate text-body-md font-medium text-on-surface">
+                          {session.request_title ?? "Learning Session"}
+                        </h3>
+                      </Link>
+                      <p className="mt-xs truncate text-body-sm text-on-surface-variant">
+                        Student: {session.student_name ?? "Student"}
+                      </p>
+                      <div className="mt-sm flex flex-wrap gap-sm text-body-sm text-on-surface-variant">
+                        <span className="flex items-center gap-xs">
+                          <Clock3 className="size-4 text-secondary" />
+                          {formatDate(session.scheduled_at)}
+                        </span>
+                        <span className="flex items-center gap-xs">
+                          <MonitorPlay className="size-4 text-secondary" />
+                          {formatSessionType(session)}
+                        </span>
+                        <span className="flex items-center gap-xs">
+                          <UserRound className="size-4 text-secondary" />
+                          {formatSessionMode(session)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="mt-md flex flex-wrap gap-sm">
-                    <Link className="inline-flex h-9 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100" to={`/instructor/chat?sessionId=${session.id}`}>
-                      Open Chat
-                    </Link>
-                    {session.status === "active" || session.status === "ready" ? (
-                      <button className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90" onClick={() => void handleMarkCompleted(session.id)} type="button">
-                        Mark Completed
-                      </button>
-                    ) : null}
+
+                  <div className="flex flex-wrap items-center gap-sm lg:flex-col lg:items-end lg:justify-center">
+                    <div className="flex flex-wrap items-center gap-sm lg:justify-end">
+                      <SessionStatusBadge status={session.status} />
+                      <PaymentStatusBadge status={paymentStatusFor(session)} />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-sm lg:justify-end">
+                      <Link
+                        className="inline-flex h-9 items-center justify-center rounded-md border border-secondary/40 px-md text-body-sm font-medium text-secondary transition hover:bg-secondary/10"
+                        to={`/instructor/sessions/${session.id}`}
+                      >
+                        View
+                      </Link>
+                      <Link
+                        className="inline-flex h-9 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
+                        to={`/instructor/chat?sessionId=${session.id}`}
+                      >
+                        Open Chat
+                      </Link>
+                      {canMarkCompleted(session) ? (
+                        <button
+                          className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90"
+                          onClick={() => void handleMarkCompleted(session.id)}
+                          type="button"
+                        >
+                          Mark Completed
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
+                </article>
               ))
             ) : (
-              <EmptyState
-                message="Sessions will appear after a student accepts your application and completes payment."
-                title="No sessions yet"
-              />
+              <div className="rounded-lg border border-dashed border-[#27272A] bg-[#121214] p-xl text-center">
+                <h3 className="text-headline-md text-zinc-100">No sessions yet</h3>
+                <p className="mx-auto mt-sm max-w-sm text-body-sm leading-relaxed text-zinc-400">
+                  Sessions will appear after a student accepts your application and completes payment.
+                </p>
+              </div>
             )}
           </div>
         </section>
-        </main>
+          </div>
 
-        <aside className="space-y-lg">
-          <SessionStatsCard loading={loading} sessions={sessions} />
-          <MiniCalendarCard detailsBasePath="/instructor/sessions" sessions={sessions} />
-        </aside>
+          <div className="col-span-1 flex flex-col gap-6 lg:col-span-4">
+            <SessionStatsCard loading={loading} sessions={sessions} />
+            <MiniCalendarCard detailsBasePath="/instructor/sessions" sessions={sessions} />
+          </div>
+        </div>
       </div>
     </>
   );

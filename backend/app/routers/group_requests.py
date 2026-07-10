@@ -41,6 +41,17 @@ router = APIRouter(prefix="/group-requests", tags=["group requests"])
 PLATFORM_FEE_RATE = Decimal("0.10")
 
 
+def _payment_return_url(payment_id: int, session_id: int) -> str:
+    return f"{settings.frontend_url.rstrip('/')}/payment/result?payment_id={payment_id}&session_id={session_id}"
+
+
+def _paymob_notification_url() -> str | None:
+    if not settings.backend_url:
+        logger.warning("Paymob notification URL is not configured. Set BACKEND_URL to a public backend URL for webhooks.")
+        return None
+    return f"{settings.backend_url.rstrip('/')}/payments/paymob/callback"
+
+
 def participant_response(participant: GroupParticipant) -> GroupParticipantResponse:
     return GroupParticipantResponse.model_validate(participant).model_copy(
         update={"student_name": participant.student.full_name if participant.student else None}
@@ -408,15 +419,34 @@ async def pay_group_share(
         db.flush()
         participant.payment_id = payment.id
 
+    logger.info(
+        "[PAYMENT-TRACE] PAYMENT CREATED local_payment_id=%s session_id=%s initial_status=%s gateway_order_id=%s gateway_intention_id=%s gateway_reference=%s",
+        payment.id,
+        session.id,
+        payment.status,
+        payment.paymob_order_id or "none",
+        payment.paymob_intention_id or "none",
+        f"payment:{payment.id}:session:{session.id}",
+    )
+
     paymob_configured = bool(settings.paymob_api_key and settings.paymob_integration_id and settings.paymob_iframe_id)
 
     if paymob_configured:
         try:
+            return_url = _payment_return_url(payment.id, session.id)
             checkout = await create_iframe_checkout(
                 PaymobCheckoutRequest(
                     amount=total_amount,
                     currency="EGP",
                     billing_data=paymob_service.build_billing_data(current_user),
+                    return_url=return_url,
+                    notification_url=_paymob_notification_url(),
+                    metadata={
+                        "payment_id": str(payment.id),
+                        "session_id": str(session.id),
+                        "request_id": str(request.id),
+                        "student_id": str(current_user.id),
+                    },
                     items=[
                         PaymobCheckoutItem(
                             name=f"Group Session: {request.title or 'Learning Session'}",
@@ -432,6 +462,15 @@ async def pay_group_share(
             client_secret = checkout["payment_token"]
             checkout_url = checkout["iframe_url"]
             participant.payment_status = "pending"
+            logger.info(
+                "[PAYMENT-TRACE] PAYMOB CHECKOUT CREATED local_payment_id=%s session_id=%s initial_status=%s gateway_order_id=%s gateway_intention_id=%s gateway_reference=%s",
+                payment.id,
+                session.id,
+                payment.status,
+                payment.paymob_order_id or "none",
+                payment.paymob_intention_id or "none",
+                f"payment:{payment.id}:session:{session.id}",
+            )
         except (PaymobProviderError, PaymobNetworkError, RuntimeError) as exc:
             logger.error("Paymob checkout failed for group request %s payment %s: %s", request.id, payment.id, exc)
             db.rollback()
@@ -441,6 +480,14 @@ async def pay_group_share(
             ) from exc
 
         db.commit()
+        db.refresh(payment)
+        logger.info(
+            "[PAYMENT-TRACE] PAYMENT CREATION COMMIT COMPLETE local_payment_id=%s session_id=%s database_status_after_commit=%s gateway_order_id=%s",
+            payment.id,
+            session.id,
+            payment.status,
+            payment.paymob_order_id or "none",
+        )
         return CreatePaymentIntentionResponse(
             payment_id=payment.id,
             checkout_url=checkout_url,

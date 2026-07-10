@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     min_session_price: int = 100
     frontend_url: str = "http://localhost:5173"
+    backend_url: str = ""
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     # Paymob payment gateway (test mode)
