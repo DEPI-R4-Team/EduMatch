@@ -2,17 +2,21 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_, select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, object_session, selectinload
 from decimal import Decimal
 
+from app.config import settings
 from app.database import get_db
 from app.dependencies.auth import get_current_user
-from app.models import GroupParticipant, Payment, Review, Session as LearningSession, User
+from app.models import GroupParticipant, InstructorProfile, LearningRequest, Payment, Review, Session as LearningSession, User
 from app.schemas.session_schema import SessionRescheduleRequest, SessionResponse
 from app.services.notification_service import create_notification, create_notifications
 from app.services.payment_service import refund_held_payment, release_held_payment
+from app.services.payment_state_service import calculate_payment_amounts, get_session_payment_state
+from app.utils.security import hash_password
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
+test_router = APIRouter(prefix="/api/sessions", tags=["test utilities"])
 
 
 @router.get("/ping")
@@ -20,11 +24,99 @@ def ping() -> dict[str, str]:
     return {"router": "sessions", "status": "ok"}
 
 
+@test_router.post("/seed-test")
+def seed_paymob_test_session(
+    db: Session = Depends(get_db),
+) -> dict[str, int | str]:
+    """Create a temporary payable session for local Paymob testing.
+
+    This endpoint is development-only and creates a matching test student plus
+    instructor so local Paymob tests have a complete payable session graph.
+    """
+    if settings.environment not in {"development", "dev", "local", "test"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Test seeding is disabled outside development.")
+
+    student = db.scalar(select(User).where(User.email == "paymob.test.student@edumatch.local"))
+    if student is None:
+        student = User(
+            full_name="Paymob Test Student",
+            email="paymob.test.student@edumatch.local",
+            password_hash=hash_password("PaymobTest12345"),
+            role="student",
+            status="active",
+        )
+        db.add(student)
+        db.flush()
+
+    instructor = db.scalar(select(User).where(User.email == "paymob.test.instructor@edumatch.local"))
+    if instructor is None:
+        instructor = User(
+            full_name="Paymob Test Instructor",
+            email="paymob.test.instructor@edumatch.local",
+            password_hash=hash_password("PaymobTest12345"),
+            role="instructor",
+            status="active",
+        )
+        db.add(instructor)
+        db.flush()
+        db.add(
+            InstructorProfile(
+                user_id=instructor.id,
+                phone="01012345678",
+                specialization="Paymob Testing",
+                verification_status="verified",
+                price_per_session=Decimal("150.00"),
+            )
+        )
+
+    request = LearningRequest(
+        student_id=student.id,
+        title="Paymob Test Course",
+        subject="Paymob Test Course",
+        description="Temporary local test request for Paymob checkout.",
+        level="beginner",
+        request_type="normal",
+        session_mode="individual",
+        session_type="online",
+        base_price=Decimal("150.00"),
+        final_price_per_student=Decimal("150.00"),
+        status="waiting_payment",
+        accepted_instructor_id=instructor.id,
+        accepted_at=datetime.now(timezone.utc),
+    )
+    db.add(request)
+    db.flush()
+
+    session = LearningSession(
+        request_id=request.id,
+        student_id=student.id,
+        instructor_id=instructor.id,
+        session_mode="individual",
+        session_type="online",
+        scheduled_at=datetime.now(timezone.utc),
+        status="pending",
+    )
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    return {
+        "session_id": session.id,
+        "request_id": request.id,
+        "student_email": student.email,
+        "title": request.title,
+        "amount": "150.00",
+        "status": session.status,
+    }
+
+
 def to_session_response(session: LearningSession, current_user: User | None = None) -> SessionResponse:
-    payment = max(session.payments, key=lambda item: item.created_at) if session.payments else None
+    student_id = current_user.id if current_user is not None and current_user.role == "student" else None
+    db = object_session(session)
+    payment_state = get_session_payment_state(db, session, student_id) if db is not None else None
+    payment = payment_state.latest_payment if payment_state else (max(session.payments, key=lambda item: item.created_at) if session.payments else None)
     participant_payment_status = None
     if session.request is not None and session.request.request_type == "group" and current_user is not None and current_user.role == "student":
-        payment = next((item for item in session.payments if item.student_id == current_user.id), None)
         participant = next(
             (
                 item
@@ -45,8 +137,7 @@ def to_session_response(session: LearningSession, current_user: User | None = No
     elif session.request:
         amount = session.request.final_price_per_student or session.request.current_price_per_student or session.request.base_price
         if amount:
-            platform_fee = (amount * Decimal("0.10")).quantize(Decimal("0.01"))
-            total_amount = amount + platform_fee
+            platform_fee, total_amount = calculate_payment_amounts(amount)
 
     return SessionResponse.model_validate(session).model_copy(
         update={
@@ -172,9 +263,10 @@ def has_held_payment_or_paid_request(session: LearningSession) -> bool:
     if session.request is not None and session.request.request_type == "group":
         active_participants = [participant for participant in session.request.group_participants if participant.status == "active"]
         return bool(active_participants) and all(participant.payment_status in {"held", "released"} for participant in active_participants)
-    return any(payment.status == "held" for payment in session.payments) or (
-        session.request is not None and session.request.status in {"paid", "in_session", "completed"}
-    )
+    db = object_session(session)
+    if db is None:
+        return any(payment.status in {"held", "released"} for payment in session.payments)
+    return get_session_payment_state(db, session).is_successfully_paid
 
 
 @router.put("/{session_id}/reschedule", response_model=SessionResponse)

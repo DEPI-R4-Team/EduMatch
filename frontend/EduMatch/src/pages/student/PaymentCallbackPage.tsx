@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { devConfirmPayment, getPaymentStatus } from "@/services/payments.service";
+import { clearLastPaymobPaymentId, devConfirmPayment, getLastPaymobPaymentId, getPaymentStatus } from "@/services/payments.service";
 import type { Payment } from "@/types/payment";
 
 /**
@@ -12,7 +12,7 @@ import type { Payment } from "@/types/payment";
 export function PaymentCallbackPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const paymentId = searchParams.get("payment_id");
+  const paymentId = searchParams.get("payment_id") ?? getLastPaymobPaymentId();
   const [status, setStatus] = useState<string>("checking");
   const [payment, setPayment] = useState<Payment | null>(null);
   const [error, setError] = useState("");
@@ -36,6 +36,7 @@ export function PaymentCallbackPage() {
           setPayment(data);
 
           if (data.status === "held" || data.status === "released") {
+            clearLastPaymobPaymentId();
             setStatus("success");
             // Redirect to the payment confirmation page after a brief delay
             setTimeout(() => {
@@ -47,6 +48,7 @@ export function PaymentCallbackPage() {
             }, 2000);
             return;
           } else if (data.status === "cancelled") {
+            clearLastPaymobPaymentId();
             setStatus("failed");
             return;
           }
@@ -91,6 +93,7 @@ export function PaymentCallbackPage() {
                     const confirmed = await devConfirmPayment(Number(paymentId));
                     setPayment(confirmed);
                     if (confirmed.status === "held" || confirmed.status === "released") {
+                      clearLastPaymobPaymentId();
                       setStatus("success");
                       setTimeout(() => {
                         navigate(`/student/payments/session/${confirmed.session_id}?payment_id=${confirmed.id}`, { replace: true });
@@ -168,6 +171,7 @@ export function PaymentCallbackPage() {
                     const confirmed = await devConfirmPayment(Number(paymentId));
                     setPayment(confirmed);
                     if (confirmed.status === "held" || confirmed.status === "released") {
+                      clearLastPaymobPaymentId();
                       setStatus("success");
                       setTimeout(() => {
                         navigate(`/student/payments/session/${confirmed.session_id}?payment_id=${confirmed.id}`, { replace: true });

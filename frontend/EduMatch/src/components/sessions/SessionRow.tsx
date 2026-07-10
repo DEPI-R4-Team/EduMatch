@@ -27,7 +27,7 @@ function getInitials(name: string) {
 }
 
 function getAction(session: StudentSession) {
-  if (session.paymentStatus === "pending") {
+  if (session.paymentStatus === "pending" || session.paymentStatus === "unpaid" || session.paymentStatus === "cancelled" || session.paymentStatus === "failed" || session.paymentStatus === "expired") {
     return { label: "Pay Now", to: `/student/payments/session/${session.id}` };
   }
 
@@ -44,7 +44,7 @@ function getAction(session: StudentSession) {
 
 export function SessionRow({ session }: SessionRowProps) {
   const action = getAction(session);
-  const canOpenChat = session.paymentStatus !== "pending" && ["ready", "active", "completed"].includes(session.status);
+  const canOpenChat = ["held", "released"].includes(session.paymentStatus) && ["ready", "active", "completed"].includes(session.status);
 
   return (
     <article className="flex flex-col gap-md rounded-lg border border-outline-variant bg-surface-container-low p-md transition hover:border-primary/40 hover:bg-surface-container-high lg:flex-row lg:items-center lg:justify-between">

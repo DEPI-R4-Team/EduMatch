@@ -10,6 +10,7 @@ from app.routers import (
     instant_requests,
     messages,
     notifications,
+    paymob_checkout,
     payments,
     reports,
     requests,
@@ -18,6 +19,7 @@ from app.routers import (
     users,
     wallet,
 )
+from app.services.paymob_iframe_service import validate_paymob_iframe_runtime
 
 app = FastAPI(title="EduMatch API")
 
@@ -36,13 +38,20 @@ app.include_router(group_requests.router)
 app.include_router(instant_requests.router)
 app.include_router(applications.router)
 app.include_router(sessions.router)
+app.include_router(sessions.test_router)
 app.include_router(messages.router)
+app.include_router(paymob_checkout.router)
 app.include_router(payments.router)
 app.include_router(wallet.router)
 app.include_router(reviews.router)
 app.include_router(notifications.router)
 app.include_router(reports.router)
 app.include_router(admin.router)
+
+
+@app.on_event("startup")
+def validate_optional_integrations() -> None:
+    validate_paymob_iframe_runtime()
 
 
 @app.get("/")

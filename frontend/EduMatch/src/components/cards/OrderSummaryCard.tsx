@@ -21,6 +21,7 @@ export function OrderSummaryCard({
 }: OrderSummaryCardProps) {
   const paymentHeld = paymentStatus === "held";
   const paymentReleased = paymentStatus === "released";
+  const paymentPending = paymentStatus === "pending";
 
   return (
     <aside className="sticky top-lg rounded-lg border border-[#27272A] bg-[#18181B] p-lg">
@@ -58,7 +59,15 @@ export function OrderSummaryCard({
         onClick={onPayNow}
         type="button"
       >
-        {paymentReleased ? "Payment Released" : paymentHeld ? "Payment Held" : isProcessing ? "Processing..." : "Pay with Paymob"}
+        {paymentReleased
+          ? "Payment Released"
+          : paymentHeld
+            ? "Payment Held"
+            : isProcessing
+              ? "Processing..."
+              : paymentPending
+                ? "Continue Payment"
+                : "Pay with Paymob"}
       </button>
       <p className="mt-sm text-center text-label-md text-zinc-400">
         Funds are held in escrow.

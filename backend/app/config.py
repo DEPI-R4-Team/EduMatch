@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     paymob_hmac_secret: str = ""
     paymob_integration_id: int = 0
     paymob_public_key: str = ""
+    paymob_iframe_id: str = ""
     paymob_base_url: str = "https://accept.paymob.com"
 
     model_config = SettingsConfigDict(

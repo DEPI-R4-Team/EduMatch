@@ -1,29 +1,20 @@
-"""Paymob payment gateway integration service.
-
-Handles communication with Paymob's Intention API and webhook HMAC verification.
-Uses test mode credentials — no real money is processed.
-"""
+"""Shared Paymob helpers for billing data and callback HMAC verification."""
 
 import hashlib
 import hmac as hmac_module
 import logging
-
-import httpx
 
 from app.config import settings
 from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
-PAYMOB_INTENTION_URL = f"{settings.paymob_base_url}/v1/intention/"
-
-
-def _amount_to_piasters(amount_egp: float | int | str) -> int:
-    """Convert EGP amount to piasters (smallest currency unit).
-
-    Paymob expects amounts in piasters: 100 EGP = 10,000 piasters.
-    """
-    return int(round(float(amount_egp) * 100))
+def _hmac_value(value: object) -> str:
+    if isinstance(value, bool):
+        return str(value).lower()
+    if value is None:
+        return ""
+    return str(value)
 
 
 def build_billing_data(user: User) -> dict:
@@ -34,9 +25,9 @@ def build_billing_data(user: User) -> dict:
     """
     name_parts = (user.full_name or "Student").split(" ", 1)
     first_name = name_parts[0]
-    last_name = name_parts[1] if len(name_parts) > 1 else "N/A"
+    last_name = name_parts[1] if len(name_parts) > 1 else "NA"
 
-    phone = "N/A"
+    phone = "01012345678"
     if user.student_profile and user.student_profile.phone:
         phone = user.student_profile.phone
     elif user.instructor_profile and user.instructor_profile.phone:
@@ -47,84 +38,18 @@ def build_billing_data(user: User) -> dict:
         "last_name": last_name,
         "email": user.email,
         "phone_number": phone,
-        "apartment": "N/A",
-        "floor": "N/A",
-        "street": "N/A",
-        "building": "N/A",
-        "shipping_method": "N/A",
-        "postal_code": "N/A",
+        "apartment": "NA",
+        "floor": "NA",
+        "street": "NA",
+        "building": "NA",
+        "shipping_method": "NA",
+        "postal_code": "NA",
         "city": "Cairo",
         "country": "EG",
         "state": "Cairo",
     }
 
 
-def create_intention(
-    amount_egp: float | int | str,
-    session_id: int,
-    payment_id: int,
-    user: User,
-    item_name: str = "Learning Session",
-) -> dict:
-    """Create a Paymob payment intention.
-
-    Calls POST /v1/intention/ to initialize a payment.
-    Returns the full Paymob response containing ``client_secret`` and ``id``.
-
-    Raises:
-        httpx.HTTPStatusError: If the Paymob API returns an error status.
-        RuntimeError: If the Paymob API key or integration ID is not configured.
-    """
-    if not settings.paymob_secret_key or settings.paymob_integration_id == 0:
-        raise RuntimeError(
-            "Paymob is not configured. Set PAYMOB_SECRET_KEY and PAYMOB_INTEGRATION_ID in your .env file."
-        )
-
-    amount_piasters = _amount_to_piasters(amount_egp)
-
-    # Build the redirect URL that Paymob will send the student to after checkout
-    callback_url = f"{settings.frontend_url}/student/payment/callback?payment_id={payment_id}"
-
-    payload = {
-        "amount": amount_piasters,
-        "currency": "EGP",
-        "payment_methods": [settings.paymob_integration_id],
-        "items": [
-            {
-                "name": item_name,
-                "amount": amount_piasters,
-                "description": f"Session #{session_id}",
-                "quantity": 1,
-            }
-        ],
-        "billing_data": build_billing_data(user),
-        "extras": {
-            "session_id": str(session_id),
-        },
-        "redirection_url": callback_url,
-    }
-
-    headers = {
-        "Authorization": f"Token {settings.paymob_secret_key}",
-        "Content-Type": "application/json",
-    }
-
-    logger.info("Creating Paymob intention for session %s, amount %s piasters", session_id, amount_piasters)
-
-    response = httpx.post(PAYMOB_INTENTION_URL, json=payload, headers=headers, timeout=30.0)
-    response.raise_for_status()
-    data = response.json()
-
-    logger.info("Paymob intention created: id=%s", data.get("id"))
-    return data
-
-
-def get_checkout_url(client_secret: str) -> str:
-    """Build the Paymob Unified Checkout URL from a client_secret.
-
-    The student is redirected to this URL to complete their payment.
-    """
-    return f"{settings.paymob_base_url}/unifiedcheckout/?publicKey={settings.paymob_public_key}&clientSecret={client_secret}"
 
 
 def verify_hmac(data: dict, received_hmac: str) -> bool:
@@ -173,13 +98,14 @@ def verify_hmac(data: dict, received_hmac: str) -> bool:
     values = []
     for field in hmac_fields:
         if field == "order":
-            values.append(str(obj.get("order", {}).get("id", "")))
+            order = obj.get("order") or {}
+            values.append(_hmac_value(order.get("id", "")) if isinstance(order, dict) else _hmac_value(order))
         elif field.startswith("source_data_"):
             source_data = obj.get("source_data", {})
             sub_field = field.replace("source_data_", "")
-            values.append(str(source_data.get(sub_field, "")))
+            values.append(_hmac_value(source_data.get(sub_field, "")) if isinstance(source_data, dict) else "")
         else:
-            values.append(str(obj.get(field, "")))
+            values.append(_hmac_value(obj.get(field, "")))
 
     concatenated = "".join(values)
 

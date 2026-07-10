@@ -379,7 +379,7 @@ def list_admin_sessions(
             started_at=session.started_at,
             ended_at=session.ended_at,
             completed_at=session.completed_at,
-            payment_status=session.payments[0].status if session.payments else None,
+            payment_status=max(session.payments, key=lambda item: (item.created_at, item.id)).status if session.payments else None,
             created_at=session.created_at,
         )
         for session in sessions

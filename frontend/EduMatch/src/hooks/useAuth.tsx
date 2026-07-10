@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from "@/services/api";
+import { AUTH_CLEARED_EVENT, AUTH_TOKEN_KEY, AUTH_USER_KEY } from "@/services/api";
 import { getCurrentUser, loginUser, logoutUser, registerUser, updateMyProfile } from "@/services/auth.service";
 import type { AuthResponse, LoginPayload, RegisterPayload, User, UserProfileUpdatePayload, UserRole } from "@/types/user";
 import { ROUTES } from "@/lib/routes";
@@ -104,6 +104,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isMounted = false;
     };
   }, [clearAuth]);
+
+  useEffect(() => {
+    function handleAuthCleared() {
+      setToken(null);
+      setUser(null);
+      setIsLoading(false);
+    }
+
+    window.addEventListener(AUTH_CLEARED_EVENT, handleAuthCleared);
+    return () => window.removeEventListener(AUTH_CLEARED_EVENT, handleAuthCleared);
+  }, []);
 
   const login = useCallback(async (payload: LoginPayload) => {
     const response = await loginUser(payload);

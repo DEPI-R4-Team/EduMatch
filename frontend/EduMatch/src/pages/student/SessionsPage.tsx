@@ -55,7 +55,7 @@ function mapSession(session: Session): StudentSession {
           : session.payment_status === "refunded"
             ? "refunded"
             : session.request_status === "waiting_payment"
-              ? "pending"
+              ? (session.payment_status === "pending" ? "pending" : "unpaid")
               : "held",
     sessionMode: session.session_mode === "group" ? "Group" : "Individual",
   };

@@ -22,6 +22,7 @@ type InstructorApplicationCardProps = {
   application: InstructorApplication;
   onAccept: (applicationId: string) => void;
   onReject: (applicationId: string) => void;
+  showDecisionActions?: boolean;
 };
 
 function getInitials(name: string) {
@@ -36,6 +37,7 @@ export function InstructorApplicationCard({
   application,
   onAccept,
   onReject,
+  showDecisionActions = true,
 }: InstructorApplicationCardProps) {
   const isAccepted = application.status === "accepted";
   const isRejected = application.status === "rejected";
@@ -86,22 +88,26 @@ export function InstructorApplicationCard({
           >
             Message Applicant
           </Link>
-          <button
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isAccepted || isRejected}
-            onClick={() => onAccept(application.id)}
-            type="button"
-          >
-            Accept
-          </button>
-          <button
-            className="inline-flex h-10 items-center justify-center rounded-md border border-error/40 px-md text-body-sm font-medium text-error transition hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isAccepted || isRejected}
-            onClick={() => onReject(application.id)}
-            type="button"
-          >
-            Reject
-          </button>
+          {showDecisionActions ? (
+            <>
+              <button
+                className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-md text-body-sm font-medium text-on-primary transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isAccepted || isRejected}
+                onClick={() => onAccept(application.id)}
+                type="button"
+              >
+                Accept
+              </button>
+              <button
+                className="inline-flex h-10 items-center justify-center rounded-md border border-error/40 px-md text-body-sm font-medium text-error transition hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isAccepted || isRejected}
+                onClick={() => onReject(application.id)}
+                type="button"
+              >
+                Reject
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
 

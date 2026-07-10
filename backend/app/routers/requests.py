@@ -4,11 +4,15 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user, require_roles
-from app.models import Application, LearningRequest, User
+from app.models import Application, LearningRequest, Payment, Session as LearningSession, User
 from app.schemas.application_schema import ApplicationResponse
 from app.schemas.request_schema import RequestCreate, RequestDetailResponse, RequestResponse, RequestUpdate
+from app.services.notification_service import create_notifications
 
 router = APIRouter(prefix="/requests", tags=["requests"])
+
+PAYMENT_SUCCESS_STATES = {"paid", "held", "released"}
+REQUEST_TERMINAL_STATES = {"completed", "paid"}
 
 
 @router.get("/ping")
@@ -64,6 +68,77 @@ def get_request_or_404(db: Session, request_id: int) -> LearningRequest:
     if request is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found.")
     return request
+
+
+def get_request_for_cancel_or_404(db: Session, request_id: int) -> LearningRequest:
+    request = db.scalar(
+        select(LearningRequest)
+        .where(LearningRequest.id == request_id)
+        .with_for_update()
+        .options(
+            selectinload(LearningRequest.student),
+            selectinload(LearningRequest.accepted_instructor),
+            selectinload(LearningRequest.applications).selectinload(Application.instructor).selectinload(User.instructor_profile),
+            selectinload(LearningRequest.payments),
+            selectinload(LearningRequest.sessions).selectinload(LearningSession.payments),
+        )
+    )
+    if request is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Request not found.")
+    return request
+
+
+def cancel_normal_request(db: Session, request_id: int, current_user: User) -> RequestResponse:
+    request = get_request_for_cancel_or_404(db, request_id)
+
+    if request.student_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to cancel this request.")
+    if request.request_type != "normal":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only normal requests can be cancelled from this endpoint.")
+    if request.status == "cancelled":
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Request is already cancelled.")
+    if request.status in REQUEST_TERMINAL_STATES:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Completed or paid requests cannot be cancelled.")
+
+    sessions = db.scalars(
+        select(LearningSession)
+        .where(LearningSession.request_id == request.id)
+        .with_for_update()
+    ).all()
+    all_payments = db.scalars(
+        select(Payment)
+        .where(Payment.request_id == request.id)
+        .with_for_update()
+    ).all()
+    if any(payment.status in PAYMENT_SUCCESS_STATES for payment in all_payments):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This request cannot be cancelled because payment has already been completed.",
+        )
+
+    for payment in all_payments:
+        if payment.status == "pending":
+            payment.status = "cancelled"
+
+    for session in sessions:
+        if session.status not in {"completed", "cancelled", "disputed"}:
+            session.status = "cancelled"
+
+    request.status = "cancelled"
+
+    instructor_ids = {application.instructor_id for application in request.applications or []}
+    create_notifications(
+        db,
+        instructor_ids,
+        type="request_cancelled",
+        title="Request Cancelled",
+        message=f'The student cancelled the request "{request.title}" that you applied to.',
+        link_url=f"/instructor/requests/{request.id}",
+    )
+
+    db.commit()
+    db.refresh(request)
+    return to_request_response(get_request_or_404(db, request.id))
 
 
 @router.post("", response_model=RequestResponse, status_code=status.HTTP_201_CREATED)
@@ -186,16 +261,7 @@ def delete_request(
     current_user: User = Depends(require_roles(["student"])),
     db: Session = Depends(get_db),
 ) -> RequestResponse:
-    request = get_request_or_404(db, request_id)
-    if request.student_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only cancel your own requests.")
-    if request.status not in {"open", "cancelled"}:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Accepted requests cannot be deleted.")
-
-    request.status = "cancelled"
-    db.commit()
-    db.refresh(request)
-    return to_request_response(get_request_or_404(db, request.id))
+    return cancel_normal_request(db, request_id, current_user)
 
 
 @router.post("/{request_id}/cancel", response_model=RequestResponse)
@@ -204,4 +270,4 @@ def cancel_request(
     current_user: User = Depends(require_roles(["student"])),
     db: Session = Depends(get_db),
 ) -> RequestResponse:
-    return delete_request(request_id, current_user, db)
+    return cancel_normal_request(db, request_id, current_user)

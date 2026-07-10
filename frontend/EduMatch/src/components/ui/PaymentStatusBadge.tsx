@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export type PaymentStatus = "pending" | "held" | "released" | "refunded" | "cancelled" | "disputed";
+export type PaymentStatus = "unpaid" | "pending" | "held" | "released" | "refunded" | "cancelled" | "disputed" | "expired" | "failed";
 
 type PaymentStatusBadgeProps = {
   status: PaymentStatus;
@@ -9,20 +9,26 @@ type PaymentStatusBadgeProps = {
 
 const statusLabels: Record<PaymentStatus, string> = {
   pending: "Pending",
+  unpaid: "Unpaid",
   held: "Held",
   released: "Released",
   refunded: "Refunded",
   cancelled: "Cancelled",
   disputed: "Disputed",
+  expired: "Expired",
+  failed: "Failed",
 };
 
 const statusClasses: Record<PaymentStatus, string> = {
   pending: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+  unpaid: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
   held: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
   released: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
   refunded: "bg-[#8b5cf6]/10 text-[#8b5cf6] border border-[#8b5cf6]/20",
   cancelled: "bg-red-500/10 text-red-400 border border-red-500/20",
   disputed: "bg-red-500/10 text-red-400 border border-red-500/20",
+  expired: "bg-red-500/10 text-red-400 border border-red-500/20",
+  failed: "bg-red-500/10 text-red-400 border border-red-500/20",
 };
 
 export function PaymentStatusBadge({ status, className }: PaymentStatusBadgeProps) {

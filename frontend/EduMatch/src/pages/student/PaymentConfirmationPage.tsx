@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { EscrowProtectionCard } from "@/components/cards/EscrowProtectionCard";
 import { OrderSummaryCard } from "@/components/cards/OrderSummaryCard";
@@ -13,6 +13,7 @@ import {
   getPaymentStatus,
   initiatePayment,
   isPaymentIntention,
+  redirectToPaymobCheckout,
 } from "@/services/payments.service";
 import { getSessionById } from "@/services/sessions.service";
 import type { GroupPaymentResponse, GroupRequest } from "@/types/groupRequest";
@@ -42,7 +43,7 @@ export function PaymentConfirmationPage() {
   const { sessionId } = useParams();
   const [searchParams] = useSearchParams();
   const numericSessionId = Number.parseInt(sessionId ?? "", 10);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("unpaid");
   const [session, setSession] = useState<Session | null>(null);
   const [groupRequest, setGroupRequest] = useState<GroupRequest | null>(null);
   const [payment, setPayment] = useState<Payment | null>(null);
@@ -50,6 +51,7 @@ export function PaymentConfirmationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [pollingPaymentId, setPollingPaymentId] = useState<number | null>(null);
+  const paymentRequestInFlight = useRef(false);
 
   const returnPaymentId = searchParams.get("payment_id");
 
@@ -79,7 +81,7 @@ export function PaymentConfirmationPage() {
           }
         } catch {
           setPayment(null);
-          setPaymentStatus("pending");
+          setPaymentStatus("unpaid");
         }
         setError("");
       } catch {
@@ -160,17 +162,23 @@ export function PaymentConfirmationPage() {
   };
 
   const handlePayNow = useCallback(async () => {
-    if (Number.isNaN(numericSessionId) || paymentStatus === "held" || paymentStatus === "released") {
+    if (
+      paymentRequestInFlight.current ||
+      Number.isNaN(numericSessionId) ||
+      paymentStatus === "held" ||
+      paymentStatus === "released"
+    ) {
       return;
     }
 
+    paymentRequestInFlight.current = true;
     setSubmitting(true);
     setError("");
     try {
       const response = groupRequest ? await payGroupRequest(groupRequest.id) : await initiatePayment(numericSessionId);
 
       if (isPaymentIntention(response)) {
-        window.location.href = response.checkout_url;
+        redirectToPaymobCheckout(response);
         setPollingPaymentId(response.payment_id);
         return;
       }
@@ -181,21 +189,10 @@ export function PaymentConfirmationPage() {
         setGroupRequest(response.group_request);
         return;
       }
-
-      setPayment(response);
-      setPaymentStatus(response.status);
-      if (response.status === "pending") {
-        try {
-          const confirmed = await devConfirmPayment(response.id);
-          setPayment(confirmed);
-          setPaymentStatus(confirmed.status);
-        } catch {
-          setError("Payment created as pending. Paymob is not configured. The payment can be confirmed via the dev-confirm endpoint.");
-        }
-      }
-    } catch {
-      setError("Could not complete payment. The request may not be waiting for payment.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not complete payment. The request may not be waiting for payment.");
     } finally {
+      paymentRequestInFlight.current = false;
       setSubmitting(false);
     }
   }, [groupRequest, numericSessionId, paymentStatus]);

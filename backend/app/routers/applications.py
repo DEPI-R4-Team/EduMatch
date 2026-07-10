@@ -175,7 +175,7 @@ def accept_application(
         session_mode=request.session_mode,
         session_type=request.session_type,
         scheduled_at=request.preferred_datetime,
-        status="waiting_payment" if request.request_type == "group" else "ready",
+        status="waiting_payment",
     )
     db.add(session)
     db.flush()

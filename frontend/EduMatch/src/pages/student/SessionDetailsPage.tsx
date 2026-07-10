@@ -70,7 +70,7 @@ function mapSession(session: Session): SessionDetailsData {
     sessionType: session.session_type === "offline" ? "Offline" : "Online",
     sessionMode: session.session_mode === "group" ? "Group" : "Individual",
     status: session.status,
-    paymentStatus: (session.payment_status ?? "pending") as PaymentStatus,
+    paymentStatus: (session.payment_status ?? (session.request_status === "waiting_payment" ? "unpaid" : "pending")) as PaymentStatus,
     date: formatDate(session.scheduled_at),
     time: formatTime(session.scheduled_at),
     duration: "60 Minutes",

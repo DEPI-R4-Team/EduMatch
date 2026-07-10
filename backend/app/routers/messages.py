@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, object_session, selectinload
 
 from app.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models import Application, GroupParticipant, LearningRequest, Message, Session as LearningSession, User
 from app.schemas.message_schema import ChatConversationResponse, MessageCreate, MessageResponse
 from app.services.notification_service import create_notification
+from app.services.payment_state_service import get_session_payment_state
 
 router = APIRouter(prefix="/messages", tags=["messages"])
 
@@ -79,6 +80,10 @@ def ensure_session_can_chat(session: LearningSession) -> None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chat is not available for this session.")
     if session.status not in CHAT_ALLOWED_STATUSES:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Chat is not available for this session status.")
+    db = object_session(session)
+    if session.request is not None and session.request.request_type != "group" and db is not None:
+        if not get_session_payment_state(db, session).session_access_allowed:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payment must be held before chat is available.")
 
 
 def last_message_for_application(db: Session, application_id: int) -> Message | None:

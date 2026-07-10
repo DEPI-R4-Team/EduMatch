@@ -15,7 +15,7 @@ import {
   leaveGroupRequest,
   payGroupRequest,
 } from "@/services/groupRequests.service";
-import { devConfirmPayment, getPaymentStatus } from "@/services/payments.service";
+import { devConfirmPayment, getPaymentStatus, redirectToPaymobCheckout } from "@/services/payments.service";
 import type { GroupRequest } from "@/types/groupRequest";
 
 function money(value: string | null) {
@@ -113,8 +113,8 @@ export function GroupRequestDetailsPage() {
       const result = await action();
       // Handle Paymob checkout redirect
       if (result && typeof result === "object" && "checkout_url" in result) {
-        const paymentResult = result as { checkout_url: string; payment_id: number };
-        window.location.href = paymentResult.checkout_url;
+        const paymentResult = result as { checkout_url: string; client_secret: string; payment_id: number };
+        redirectToPaymobCheckout(paymentResult);
         setNotice("Redirecting to Paymob...");
         setPollingPaymentId(paymentResult.payment_id);
         return; // actionLoading remains true while polling

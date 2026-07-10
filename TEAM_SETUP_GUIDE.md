@@ -52,7 +52,13 @@ python -m venv .venv
 Install backend dependencies:
 
 ```cmd
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
+```
+
+Verify the Paymob HTTP client dependency is installed in the same virtual environment:
+
+```cmd
+python -c "import httpx; print(httpx.__version__)"
 ```
 
 ## 5. PostgreSQL Setup
@@ -111,7 +117,7 @@ This creates/updates the required PostgreSQL tables.
 From the `backend` folder:
 
 ```cmd
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
 
 Backend URLs:

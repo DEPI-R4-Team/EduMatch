@@ -21,7 +21,7 @@ class Session(Base):
     instructor_marked_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     student_confirmed_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    status: Mapped[str] = mapped_column(String(32), nullable=False, default="ready", server_default="ready")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="waiting_payment", server_default="waiting_payment")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

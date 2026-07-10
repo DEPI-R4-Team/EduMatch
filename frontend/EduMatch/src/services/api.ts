@@ -2,10 +2,12 @@ import axios from "axios";
 
 export const AUTH_TOKEN_KEY = "edumatch_token";
 export const AUTH_USER_KEY = "edumatch_user";
+export const AUTH_CLEARED_EVENT = "edumatch:auth-cleared";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "",
   headers: { "Content-Type": "application/json" },
+  timeout: 15000,
 });
 
 api.interceptors.request.use((config) => {
@@ -33,10 +35,7 @@ api.interceptors.response.use(
     if (status === 401) {
       localStorage.removeItem(AUTH_TOKEN_KEY);
       localStorage.removeItem(AUTH_USER_KEY);
-
-      if (!window.location.pathname.startsWith("/login")) {
-        window.location.assign("/login");
-      }
+      window.dispatchEvent(new Event(AUTH_CLEARED_EVENT));
     }
 
     return Promise.reject(error);

@@ -10,6 +10,7 @@ import {
   Video,
   WalletCards,
   Pencil,
+  XCircle,
 } from "lucide-react";
 import { BackButton } from "@/components/ui/BackButton";
 import {
@@ -20,7 +21,7 @@ import { PaymentRequiredCard } from "@/components/cards/PaymentRequiredCard";
 import { RequestSummaryCard } from "@/components/cards/RequestSummaryCard";
 import { RequestStatusBadge, type RequestStatus } from "@/components/ui/RequestStatusBadge";
 import { acceptApplication, getApplicationsForRequest, rejectApplication } from "@/services/applications.service";
-import { getRequestById } from "@/services/requests.service";
+import { cancelRequest, getRequestById } from "@/services/requests.service";
 import { getMySessions } from "@/services/sessions.service";
 import type { Application } from "@/types/application";
 import type { LearningRequestDetail } from "@/types/request";
@@ -57,6 +58,8 @@ export function RequestDetailsPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   async function loadDetails() {
     if (!Number.isFinite(requestId)) {
@@ -115,6 +118,38 @@ export function RequestDetailsPage() {
     }
   }
 
+  async function handleCancelRequest() {
+    setCancelLoading(true);
+    setMessage("");
+    setError("");
+    try {
+      const updated = await cancelRequest(requestId);
+      setRequest((current) => (current ? { ...current, ...updated, applications: current.applications } : current));
+      setApplications((current) => [...current]);
+      setSessionId(null);
+      setCancelDialogOpen(false);
+      setMessage("Request cancelled successfully. Instructors who applied have been notified.");
+      await loadDetails();
+    } catch (caughtError) {
+      const detail =
+        caughtError &&
+        typeof caughtError === "object" &&
+        "response" in caughtError &&
+        caughtError.response &&
+        typeof caughtError.response === "object" &&
+        "data" in caughtError.response &&
+        caughtError.response.data &&
+        typeof caughtError.response.data === "object" &&
+        "detail" in caughtError.response.data &&
+        typeof caughtError.response.data.detail === "string"
+          ? caughtError.response.data.detail
+          : "Could not cancel this request.";
+      setMessage(detail);
+    } finally {
+      setCancelLoading(false);
+    }
+  }
+
   if (loading) {
     return <div className="p-lg text-body-sm text-zinc-400">Loading request details...</div>;
   }
@@ -132,6 +167,11 @@ export function RequestDetailsPage() {
     { icon: WalletCards, label: "Budget", value: formatCurrency(request.base_price) },
   ];
 
+  const canCancelRequest =
+    request.request_type === "normal" &&
+    ["open", "accepted", "waiting_payment"].includes(request.status);
+  const canManageApplications = request.status === "open";
+
   return (
     <>
       <header className="sticky top-0 z-[60] bg-[#09090B]/95 backdrop-blur-xl border-b border-[#27272A] px-margin-mobile py-lg md:px-margin-desktop">
@@ -142,14 +182,26 @@ export function RequestDetailsPage() {
           </div>
 
           <BackButton fallback="/student/requests" />
-          <button
-            className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-[#27272A] px-md text-body-sm font-medium text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
-            onClick={() => setMessage("Edit request will be available later.")}
-            type="button"
-          >
-            <Pencil className="size-4" />
-            Edit Request
-          </button>
+          {request.status === "open" ? (
+            <button
+              className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-[#27272A] px-md text-body-sm font-medium text-zinc-400 transition hover:bg-[#27272A] hover:text-zinc-100"
+              onClick={() => setMessage("Edit request will be available later.")}
+              type="button"
+            >
+              <Pencil className="size-4" />
+              Edit Request
+            </button>
+          ) : null}
+          {canCancelRequest ? (
+            <button
+              className="inline-flex h-10 items-center justify-center gap-xs rounded-md border border-red-500/40 px-md text-body-sm font-medium text-red-400 transition hover:bg-red-500/10"
+              onClick={() => setCancelDialogOpen(true)}
+              type="button"
+            >
+              <XCircle className="size-4" />
+              Cancel Request
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -207,6 +259,12 @@ export function RequestDetailsPage() {
           />
         ) : null}
 
+        {request.status === "cancelled" ? (
+          <section className="rounded-lg border border-red-500/20 bg-red-500/10 p-lg text-body-sm text-red-300">
+            This request has been cancelled. Applications and payment actions are no longer available, but the request history remains visible.
+          </section>
+        ) : null}
+
         <section className="space-y-md">
           <div className="flex flex-col gap-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -234,6 +292,7 @@ export function RequestDetailsPage() {
                   key={application.id}
                   onAccept={handleAccept}
                   onReject={handleReject}
+                  showDecisionActions={canManageApplications}
                 />
               ))
             ) : (
@@ -244,6 +303,39 @@ export function RequestDetailsPage() {
           </div>
         </section>
       </div>
+
+      {cancelDialogOpen ? (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm" role="presentation">
+          <section
+            aria-modal="true"
+            className="w-full max-w-lg rounded-2xl border border-[#27272A] bg-[#18181B] p-lg text-zinc-100 shadow-[0_10px_50px_rgba(0,0,0,0.7)]"
+            role="dialog"
+          >
+            <h2 className="text-headline-md text-zinc-100">Cancel this request?</h2>
+            <p className="mt-sm text-body-sm text-zinc-400">
+              This will close the request and notify all instructors who applied. You cannot continue with applications or payment after cancellation.
+            </p>
+            <div className="mt-lg flex flex-col-reverse gap-sm sm:flex-row sm:justify-end">
+              <button
+                className="inline-flex h-10 items-center justify-center rounded-md border border-[#27272A] px-md text-body-sm font-medium text-zinc-100 transition hover:bg-[#27272A] disabled:opacity-60"
+                disabled={cancelLoading}
+                onClick={() => setCancelDialogOpen(false)}
+                type="button"
+              >
+                Keep Request
+              </button>
+              <button
+                className="inline-flex h-10 items-center justify-center rounded-md bg-red-500 px-md text-body-sm font-medium text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={cancelLoading}
+                onClick={() => void handleCancelRequest()}
+                type="button"
+              >
+                {cancelLoading ? "Cancelling..." : "Cancel Request"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </>
   );
 }

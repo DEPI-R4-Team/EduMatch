@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { getMyRequests } from "@/services/requests.service";
 import type { LearningRequest } from "@/types/request";
 
-type FilterValue = "all" | "open" | "accepted" | "waiting_payment" | "in_session" | "completed";
+type FilterValue = "all" | "open" | "accepted" | "waiting_payment" | "in_session" | "completed" | "cancelled";
 type RequestStatus =
   | "open"
   | "instant_open"
@@ -46,6 +46,7 @@ const filters: Array<{ label: string; value: FilterValue }> = [
   { label: "Waiting Payment", value: "waiting_payment" },
   { label: "In Session", value: "in_session" },
   { label: "Completed", value: "completed" },
+  { label: "Cancelled", value: "cancelled" },
 ];
 
 const TAB_STATUS_MAP: Record<Exclude<FilterValue, "all">, RequestStatus[]> = {
@@ -54,6 +55,7 @@ const TAB_STATUS_MAP: Record<Exclude<FilterValue, "all">, RequestStatus[]> = {
   waiting_payment: ["waiting_payment"],
   in_session: ["in_session"],
   completed: ["completed"],
+  cancelled: ["cancelled", "expired"],
 };
 
 const statusLabels: Record<RequestStatus, string> = {

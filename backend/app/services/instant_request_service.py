@@ -180,7 +180,7 @@ def accept_instant_request(db: Session, request_id: int, current_instructor: Use
         session_mode=request.session_mode,
         session_type=request.session_type,
         scheduled_at=accepted_at,
-        status="ready",
+        status="waiting_payment",
     )
     db.add(session)
     db.flush()

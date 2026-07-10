@@ -53,6 +53,19 @@ Start command:
 uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
+If the Railway service root is the repository root instead of `backend`, use the included root `railway.json`.
+It installs backend dependencies with:
+
+```bash
+cd backend && pip install -r requirements.txt
+```
+
+and starts the API with:
+
+```bash
+cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
 Required backend environment variables:
 
 ```env
@@ -62,6 +75,10 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 FRONTEND_URL=https://your-frontend-domain.vercel.app
 CORS_ORIGINS=https://your-frontend-domain.vercel.app,http://localhost:5173
+PAYMOB_API_KEY=your_paymob_test_api_key
+PAYMOB_INTEGRATION_ID=your_paymob_integration_id
+PAYMOB_IFRAME_ID=your_paymob_iframe_id
+PAYMOB_HMAC_SECRET=your_paymob_hmac_secret
 ```
 
 Notes:
@@ -70,6 +87,9 @@ Notes:
 - `FRONTEND_URL` should match the deployed Vercel domain exactly.
 - `CORS_ORIGINS` supports comma-separated origins.
 - Keep local origins in `CORS_ORIGINS` only if you need local frontend to call the deployed backend during testing.
+- Paymob iframe checkout uses `httpx`, which is declared in `backend/requirements.txt`.
+- If any Paymob iframe environment variable is set, the backend validates the full Paymob iframe configuration during startup.
+- Do not commit Paymob keys or HMAC secrets.
 
 Health check endpoint:
 
