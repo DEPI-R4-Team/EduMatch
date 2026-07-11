@@ -420,13 +420,13 @@ async def pay_group_share(
         participant.payment_id = payment.id
 
     logger.info(
-        "[PAYMENT-TRACE] PAYMENT CREATED local_payment_id=%s session_id=%s initial_status=%s gateway_order_id=%s gateway_intention_id=%s gateway_reference=%s",
+        "[PAYMENT-CONFIRM-TRACE] PAYMENT CREATED local_payment_id=%s session_id=%s status=%s paymob_order_id=%s paymob_intention_id=%s paymob_transaction_id=%s",
         payment.id,
         session.id,
         payment.status,
         payment.paymob_order_id or "none",
         payment.paymob_intention_id or "none",
-        f"payment:{payment.id}:session:{session.id}",
+        payment.paymob_transaction_id or "none",
     )
 
     paymob_configured = bool(settings.paymob_api_key and settings.paymob_integration_id and settings.paymob_iframe_id)
@@ -463,13 +463,13 @@ async def pay_group_share(
             checkout_url = checkout["iframe_url"]
             participant.payment_status = "pending"
             logger.info(
-                "[PAYMENT-TRACE] PAYMOB CHECKOUT CREATED local_payment_id=%s session_id=%s initial_status=%s gateway_order_id=%s gateway_intention_id=%s gateway_reference=%s",
+                "[PAYMENT-CONFIRM-TRACE] PAYMOB CHECKOUT CREATED local_payment_id=%s session_id=%s status=%s paymob_order_id=%s paymob_intention_id=%s paymob_transaction_id=%s",
                 payment.id,
                 session.id,
                 payment.status,
                 payment.paymob_order_id or "none",
                 payment.paymob_intention_id or "none",
-                f"payment:{payment.id}:session:{session.id}",
+                payment.paymob_transaction_id or "none",
             )
         except (PaymobProviderError, PaymobNetworkError, RuntimeError) as exc:
             logger.error("Paymob checkout failed for group request %s payment %s: %s", request.id, payment.id, exc)
@@ -482,11 +482,13 @@ async def pay_group_share(
         db.commit()
         db.refresh(payment)
         logger.info(
-            "[PAYMENT-TRACE] PAYMENT CREATION COMMIT COMPLETE local_payment_id=%s session_id=%s database_status_after_commit=%s gateway_order_id=%s",
+            "[PAYMENT-CONFIRM-TRACE] PAYMENT CREATION COMMIT COMPLETE local_payment_id=%s session_id=%s database_status_after_commit=%s paymob_order_id=%s paymob_intention_id=%s paymob_transaction_id=%s",
             payment.id,
             session.id,
             payment.status,
             payment.paymob_order_id or "none",
+            payment.paymob_intention_id or "none",
+            payment.paymob_transaction_id or "none",
         )
         return CreatePaymentIntentionResponse(
             payment_id=payment.id,

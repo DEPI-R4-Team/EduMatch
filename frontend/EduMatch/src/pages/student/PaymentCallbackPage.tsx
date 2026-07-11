@@ -137,7 +137,7 @@ export function PaymentCallbackPage() {
     const successful = isPaymentSuccessful(data.status);
     const pending = isPaymentPending(data.status);
     const failed = isPaymentFailed(data.status);
-    console.info("[PAYMENT-TRACE-FRONTEND] STATUS RESPONSE", {
+    console.info("[PAYMENT-TRACE-FRONTEND] RAW STATUS RESPONSE", {
       status: data.status,
       paymentId: data.id,
       sessionId: data.session_id,
@@ -179,6 +179,11 @@ export function PaymentCallbackPage() {
       }
 
       attemptsRef.current += 1;
+      console.info("[PAYMENT-TRACE-FRONTEND] STATUS POLL", {
+        attempt: attemptsRef.current,
+        paymentId,
+        sessionId,
+      });
       setState("checking");
       setMessage("Confirming your payment...");
 

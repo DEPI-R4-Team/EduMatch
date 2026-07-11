@@ -1,6 +1,8 @@
 import logging
+import json
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, select
@@ -63,7 +65,77 @@ def _extract_paymob_order_extras(obj: dict) -> dict:
 
 
 def _as_dict(value: object) -> dict:
-    return value if isinstance(value, dict) else {}
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
+
+
+def _first_dict(*values: object) -> dict:
+    for value in values:
+        parsed = _as_dict(value)
+        if parsed:
+            return parsed
+    return {}
+
+
+def _nested_get(data: dict, *path: str) -> object:
+    current: object = data
+    for key in path:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def _extract_callback_obj(body: dict[str, Any]) -> dict[str, Any]:
+    obj = body.get("obj", body)
+    return _as_dict(obj)
+
+
+def _extract_callback_metadata(obj: dict[str, Any]) -> dict[str, str]:
+    payment_key_claims = _as_dict(obj.get("payment_key_claims"))
+    order_extras = _extract_paymob_order_extras(obj)
+    explicit_extra = _as_dict(obj.get("extra"))
+    merchant_extra = _as_dict(obj.get("merchant_extra"))
+    return {
+        str(key): str(value)
+        for key, value in _first_dict(
+            payment_key_claims.get("extra"),
+            payment_key_claims.get("extras"),
+            explicit_extra,
+            merchant_extra,
+            order_extras,
+        ).items()
+    }
+
+
+def _extract_paymob_intention_id(obj: dict[str, Any]) -> str:
+    intention = obj.get("intention")
+    if isinstance(intention, dict):
+        intention_id = intention.get("id")
+        if intention_id:
+            return str(intention_id)
+    payment_key_claims = _as_dict(obj.get("payment_key_claims"))
+    for key in ("intention_id", "intention"):
+        value = payment_key_claims.get(key)
+        if value:
+            return str(value)
+    value = obj.get("intention_id")
+    return str(value) if value else ""
+
+
+def _extract_paymob_transaction_status(obj: dict[str, Any]) -> str:
+    for key in ("data.message", "txn_response_code", "source_data.sub_type"):
+        value = _nested_get(obj, *key.split("."))
+        if value:
+            return str(value)
+    return str(obj.get("status", "") or obj.get("message", "") or "")
 
 
 def _payment_return_url(payment_id: int, session_id: int) -> str:
@@ -79,7 +151,7 @@ def _paymob_notification_url() -> str | None:
 
 def _trace(message: str, **fields: object) -> None:
     details = " ".join(f"{key}={value}" for key, value in fields.items())
-    logger.info("[PAYMENT-TRACE] %s%s", message, f" {details}" if details else "")
+    logger.info("[PAYMENT-CONFIRM-TRACE] %s%s", message, f" {details}" if details else "")
 
 
 def serialize_payment(payment: Payment) -> PaymentDetailResponse:
@@ -235,10 +307,10 @@ async def pay_for_session(
         "PAYMENT CREATED",
         local_payment_id=payment.id,
         session_id=session.id,
-        initial_status=payment.status,
-        gateway_order_id=payment.paymob_order_id or "none",
-        gateway_intention_id=payment.paymob_intention_id or "none",
-        gateway_reference=f"payment:{payment.id}:session:{session.id}",
+        status=payment.status,
+        paymob_intention_id=payment.paymob_intention_id or "none",
+        paymob_order_id=payment.paymob_order_id or "none",
+        paymob_transaction_id=payment.paymob_transaction_id or "none",
     )
 
     if session.status == "ready" and not payment_state.session_access_allowed:
@@ -282,10 +354,10 @@ async def pay_for_session(
             "PAYMOB CHECKOUT CREATED",
             local_payment_id=payment.id,
             session_id=session.id,
-            initial_status=payment.status,
-            gateway_order_id=payment.paymob_order_id or "none",
-            gateway_intention_id=payment.paymob_intention_id or "none",
-            gateway_reference=f"payment:{payment.id}:session:{session.id}",
+            status=payment.status,
+            paymob_order_id=payment.paymob_order_id or "none",
+            paymob_intention_id=payment.paymob_intention_id or "none",
+            paymob_transaction_id=payment.paymob_transaction_id or "none",
         )
     except (PaymobProviderError, PaymobNetworkError, RuntimeError) as exc:
         logger.error("Paymob checkout failed for session %s: %s", session.id, exc)
@@ -302,7 +374,9 @@ async def pay_for_session(
         local_payment_id=payment.id,
         session_id=session.id,
         database_status_after_commit=payment.status,
-        gateway_order_id=payment.paymob_order_id or "none",
+        paymob_order_id=payment.paymob_order_id or "none",
+        paymob_intention_id=payment.paymob_intention_id or "none",
+        paymob_transaction_id=payment.paymob_transaction_id or "none",
     )
     return CreatePaymentIntentionResponse(
         payment_id=payment.id,
@@ -311,6 +385,7 @@ async def pay_for_session(
     )
 
 
+@router.get("/paymob/callback")
 @router.post("/paymob/callback")
 async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db)) -> dict:
     """Receive and process Paymob webhook callbacks.
@@ -321,23 +396,46 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
     Paymob sends the HMAC in the query string ``?hmac=...`` and the transaction
     data in the POST body under ``obj``.
     """
-    body = await request.json()
+    try:
+        body = await request.json() if request.method != "GET" else {}
+    except json.JSONDecodeError:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+    if request.method == "GET" and not body:
+        body = dict(request.query_params)
+
     received_hmac = request.query_params.get("hmac", "") or str(body.get("hmac", "") or "")
     callback_type = body.get("type")
-    obj = body.get("obj", body)
-    if not isinstance(obj, dict):
+    obj = _extract_callback_obj(body)
+    if not obj:
         logger.warning("[PAYMOB] Invalid callback payload type=%s", type(obj).__name__)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Paymob callback payload.")
 
     transaction_id = str(obj.get("id", ""))
     order_id = _extract_paymob_order_id(obj)
+    callback_metadata = _extract_callback_metadata(obj)
+    payment_id_str = str(callback_metadata.get("payment_id") or "")
+    paymob_intention_id = _extract_paymob_intention_id(obj)
+    paymob_pending = _as_bool(obj.get("pending", False))
+    paymob_status = _extract_paymob_transaction_status(obj)
     _trace(
         "CALLBACK RECEIVED",
-        request_method=request.method,
+        method=request.method,
+        path=request.url.path,
         callback_type=callback_type or "none",
         transaction_id=transaction_id or "none",
         order_id=order_id or "none",
-        reference="unknown",
+        reference=payment_id_str or paymob_intention_id or order_id or "none",
+    )
+    _trace(
+        "CALLBACK STRUCTURE",
+        top_level_keys=",".join(sorted(body.keys())) or "none",
+        transaction_object_present=bool(obj),
+        transaction_id_present=bool(transaction_id),
+        order_id_present=bool(order_id),
+        success_field_present="success" in obj,
+        metadata_keys=",".join(sorted(callback_metadata.keys())) or "none",
     )
     logger.info(
         "[PAYMOB] Transaction callback received type=%s transaction_id=%s order_id=%s hmac_present=%s",
@@ -361,11 +459,6 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid HMAC signature.")
 
     success = _as_bool(obj.get("success", False))
-    payment_key_claims = _as_dict(obj.get("payment_key_claims", {}))
-    claim_extras = _as_dict(payment_key_claims.get("extra", {}))
-    order_extras = _extract_paymob_order_extras(obj)
-    payment_id_str = str(claim_extras.get("payment_id") or order_extras.get("payment_id") or "")
-    paymob_intention_id = str(obj.get("intention", {}).get("id", "") or payment_key_claims.get("intention_id", ""))
     _trace(
         "CALLBACK REFERENCES",
         transaction_id=transaction_id or "none",
@@ -374,6 +467,7 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
         payment_id=payment_id_str or "none",
         intention_id=paymob_intention_id or "none",
         success=success,
+        pending=paymob_pending,
     )
     logger.info(
         "[PAYMOB] Callback references transaction_id=%s order_id=%s local_payment_ref=%s intention_id=%s success=%s",
@@ -443,7 +537,7 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
 
     if payment is None:
         # Fall back by session only when it uniquely identifies one pending payment.
-        session_id_str = str(claim_extras.get("session_id") or order_extras.get("session_id") or "")
+        session_id_str = str(callback_metadata.get("session_id") or "")
         if session_id_str.isdigit():
             pending_payments = db.scalars(
                 select(Payment)
@@ -483,6 +577,8 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
 
     payment.paymob_transaction_id = transaction_id
     payment.paymob_order_id = order_id
+    if paymob_intention_id:
+        payment.paymob_intention_id = paymob_intention_id
 
     amount_cents = obj.get("amount_cents")
     expected_amount_cents = int((payment.total_amount * 100).quantize(Decimal("1")))
@@ -501,7 +597,14 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payment amount mismatch.")
 
     try:
-        if success and payment.status == "pending":
+        _trace(
+            "TRANSACTION RESULT",
+            paymob_success=success,
+            paymob_pending=paymob_pending,
+            paymob_status=paymob_status or "none",
+            current_local_status=payment.status,
+        )
+        if success and not paymob_pending and payment.status == "pending":
             session = payment.session
             if session:
                 _hold_payment_and_update_wallet(db, payment, session)
@@ -509,9 +612,7 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
                 payment.status = "held"
                 payment.paid_at = datetime.now(timezone.utc)
             _trace(
-                "STATUS UPDATE",
-                local_payment_id=payment.id,
-                session_id=payment.session_id,
+                "STATUS TRANSITION",
                 old_status=old_status,
                 new_status=payment.status,
             )
@@ -531,12 +632,10 @@ async def paymob_webhook_callback(request: Request, db: Session = Depends(get_db
                 payment.status,
             )
             return {"status": "success", "payment_id": payment.id}
-        if not success and payment.status == "pending":
+        if not success and not paymob_pending and payment.status == "pending":
             payment.status = "cancelled"
             _trace(
-                "STATUS UPDATE",
-                local_payment_id=payment.id,
-                session_id=payment.session_id,
+                "STATUS TRANSITION",
                 old_status=old_status,
                 new_status=payment.status,
             )
