@@ -1,7 +1,9 @@
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import or_, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, object_session, selectinload
 from decimal import Decimal
 
@@ -14,6 +16,8 @@ from app.services.notification_service import create_notification, create_notifi
 from app.services.payment_service import refund_held_payment, release_held_payment
 from app.services.payment_state_service import calculate_payment_amounts, get_session_payment_state
 from app.utils.security import hash_password
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 test_router = APIRouter(prefix="/api/sessions", tags=["test utilities"])
@@ -160,28 +164,40 @@ def get_my_sessions(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[SessionResponse]:
+    logger.info("[SESSIONS-MY] request started user_id=%s role=%s", current_user.id, current_user.role)
     if current_user.role == "student":
-        group_request_ids = db.scalars(
-            select(GroupParticipant.request_id).where(GroupParticipant.student_id == current_user.id, GroupParticipant.status == "active")
-        ).all()
+        try:
+            logger.info("[SESSIONS-MY] group participant query started user_id=%s", current_user.id)
+            group_request_ids = db.scalars(
+                select(GroupParticipant.request_id).where(GroupParticipant.student_id == current_user.id, GroupParticipant.status == "active")
+            ).all()
+        except SQLAlchemyError:
+            logger.exception("[SESSIONS-MY] group participant query failed user_id=%s exception_type=SQLAlchemyError", current_user.id)
+            raise
         clause = or_(LearningSession.student_id == current_user.id, LearningSession.request_id.in_(group_request_ids))
     elif current_user.role == "instructor":
         clause = LearningSession.instructor_id == current_user.id
     else:
         clause = or_(LearningSession.student_id == current_user.id, LearningSession.instructor_id == current_user.id)
 
-    sessions = db.scalars(
-        select(LearningSession)
-        .where(clause)
-        .order_by(LearningSession.created_at.desc())
-        .options(
-            selectinload(LearningSession.request),
-            selectinload(LearningSession.student),
-            selectinload(LearningSession.instructor),
-            selectinload(LearningSession.payments),
-            selectinload(LearningSession.reviews),
-        )
-    ).all()
+    try:
+        logger.info("[SESSIONS-MY] sessions query started user_id=%s", current_user.id)
+        sessions = db.scalars(
+            select(LearningSession)
+            .where(clause)
+            .order_by(LearningSession.created_at.desc())
+            .options(
+                selectinload(LearningSession.request),
+                selectinload(LearningSession.student),
+                selectinload(LearningSession.instructor),
+                selectinload(LearningSession.payments),
+                selectinload(LearningSession.reviews),
+            )
+        ).all()
+    except SQLAlchemyError:
+        logger.exception("[SESSIONS-MY] sessions query failed user_id=%s exception_type=SQLAlchemyError", current_user.id)
+        raise
+    logger.info("[SESSIONS-MY] sessions query completed user_id=%s count=%s", current_user.id, len(sessions))
     return [to_session_response(session, current_user) for session in sessions]
 
 

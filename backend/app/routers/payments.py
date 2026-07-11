@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from app.config import settings
@@ -656,20 +657,27 @@ def get_my_payments(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[PaymentResponse]:
+    logger.info("[PAYMENTS-MY] request started user_id=%s role=%s", current_user.id, current_user.role)
     if current_user.role != "student":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only students can view student payments.")
 
-    payments = db.scalars(
-        select(Payment)
-        .where(Payment.student_id == current_user.id)
-        .order_by(Payment.created_at.desc())
-        .options(
-            selectinload(Payment.session),
-            selectinload(Payment.request),
-            selectinload(Payment.student),
-            selectinload(Payment.instructor),
-        )
-    ).all()
+    try:
+        logger.info("[PAYMENTS-MY] payments query started user_id=%s", current_user.id)
+        payments = db.scalars(
+            select(Payment)
+            .where(Payment.student_id == current_user.id)
+            .order_by(Payment.created_at.desc())
+            .options(
+                selectinload(Payment.session),
+                selectinload(Payment.request),
+                selectinload(Payment.student),
+                selectinload(Payment.instructor),
+            )
+        ).all()
+    except SQLAlchemyError:
+        logger.exception("[PAYMENTS-MY] payments query failed user_id=%s exception_type=SQLAlchemyError", current_user.id)
+        raise
+    logger.info("[PAYMENTS-MY] payments query completed user_id=%s count=%s", current_user.id, len(payments))
     return [serialize_payment(payment) for payment in payments]
 
 

@@ -40,6 +40,13 @@ type Metric = {
 type DashboardSectionKey = "requests" | "sessions" | "payments" | "reviews";
 type DashboardSectionErrors = Partial<Record<DashboardSectionKey, string>>;
 
+const sectionLabels: Record<DashboardSectionKey, string> = {
+  requests: "Requests",
+  sessions: "Sessions",
+  payments: "Payments",
+  reviews: "Reviews",
+};
+
 const toneClasses: Record<Metric["tone"], string> = {
   primary: "w-10 h-10 rounded-xl bg-[#09090B] border border-[#27272A] flex items-center justify-center text-[#8b5cf6]",
   cyan: "w-10 h-10 rounded-xl bg-[#09090B] border border-[#27272A] flex items-center justify-center text-[#8b5cf6]",
@@ -87,7 +94,9 @@ function getApiErrorDetail(error: unknown) {
   return typeof detail === "string" ? detail : error.message;
 }
 
-function classifyDashboardFailure(endpoint: string, error: unknown) {
+function classifyDashboardFailure(section: DashboardSectionKey, error: unknown) {
+  const sectionLabel = sectionLabels[section];
+
   if (isAxiosError(error)) {
     const status = error.response?.status;
     const detail = getApiErrorDetail(error);
@@ -96,7 +105,7 @@ function classifyDashboardFailure(endpoint: string, error: unknown) {
       return {
         isBackendUnavailable: true,
         status: error.code ?? "network",
-        message: `${endpoint} could not reach the backend. Check the deployed API URL or network connection.`,
+        message: `${sectionLabel} could not be loaded because the browser did not receive an HTTP response from the backend. Check network, CORS, or backend availability.`,
       };
     }
 
@@ -104,7 +113,7 @@ function classifyDashboardFailure(endpoint: string, error: unknown) {
       return {
         isBackendUnavailable: false,
         status,
-        message: `${endpoint} returned 401. Your session may have expired. Please sign in again.`,
+        message: `${sectionLabel} could not be loaded because your session may have expired. Please sign in again.`,
       };
     }
 
@@ -112,7 +121,7 @@ function classifyDashboardFailure(endpoint: string, error: unknown) {
       return {
         isBackendUnavailable: false,
         status,
-        message: `${endpoint} returned 403. This account is not allowed to load that dashboard section.`,
+        message: `${sectionLabel} could not be loaded because this account does not have permission to access it.`,
       };
     }
 
@@ -120,7 +129,7 @@ function classifyDashboardFailure(endpoint: string, error: unknown) {
       return {
         isBackendUnavailable: false,
         status,
-        message: `${endpoint} returned 404. The endpoint or resource was not found.`,
+        message: `${sectionLabel} could not be loaded because the requested endpoint or resource was not found.`,
       };
     }
 
@@ -128,7 +137,7 @@ function classifyDashboardFailure(endpoint: string, error: unknown) {
       return {
         isBackendUnavailable: false,
         status,
-        message: `${endpoint} returned 422. The request parameters were rejected by the API.`,
+        message: `${sectionLabel} could not be loaded because the API rejected the request parameters.`,
       };
     }
 
@@ -136,21 +145,21 @@ function classifyDashboardFailure(endpoint: string, error: unknown) {
       return {
         isBackendUnavailable: false,
         status,
-        message: `${endpoint} returned ${status}. ${detail ?? "The server could not load this section."}`,
+        message: `${sectionLabel} could not be loaded because the server returned ${status}. ${detail ?? "The server encountered an error while loading this section."}`,
       };
     }
 
     return {
       isBackendUnavailable: false,
       status: status ?? "unknown",
-      message: `${endpoint} failed. ${detail ?? "This section could not be loaded."}`,
+      message: `${sectionLabel} could not be loaded. ${detail ?? "This section request failed."}`,
     };
   }
 
   return {
     isBackendUnavailable: false,
     status: "unknown",
-    message: `${endpoint} failed with an unexpected frontend error.`,
+    message: `${sectionLabel} could not be loaded because of an unexpected frontend error.`,
   };
 }
 
@@ -189,12 +198,13 @@ export function StudentDashboardPage() {
           return;
         }
 
-        const failure = classifyDashboardFailure(endpoint, result.reason);
+        const failure = classifyDashboardFailure(section, result.reason);
         if (failure.isBackendUnavailable) {
           networkFailures += 1;
         }
         nextSectionErrors[section] = failure.message;
-        console.warn("[STUDENT-DASHBOARD] request failed", {
+        console.warn("[DASHBOARD] section request failed", {
+          section,
           endpoint,
           status: failure.status,
           message: failure.message,
