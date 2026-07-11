@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { isAxiosError } from "axios";
 import {
+  AlertCircle,
   BookOpenCheck,
   CalendarClock,
   CheckCircle2,
@@ -34,6 +36,9 @@ type Metric = {
   icon: typeof FileText;
   tone: "primary" | "cyan" | "amber" | "green";
 };
+
+type DashboardSectionKey = "requests" | "sessions" | "payments" | "reviews";
+type DashboardSectionErrors = Partial<Record<DashboardSectionKey, string>>;
 
 const toneClasses: Record<Metric["tone"], string> = {
   primary: "w-10 h-10 rounded-xl bg-[#09090B] border border-[#27272A] flex items-center justify-center text-[#8b5cf6]",
@@ -70,6 +75,94 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
+function getApiErrorDetail(error: unknown) {
+  if (!isAxiosError(error)) {
+    return null;
+  }
+
+  const detail = error.response?.data && typeof error.response.data === "object" && "detail" in error.response.data
+    ? (error.response.data as { detail?: unknown }).detail
+    : null;
+
+  return typeof detail === "string" ? detail : error.message;
+}
+
+function classifyDashboardFailure(endpoint: string, error: unknown) {
+  if (isAxiosError(error)) {
+    const status = error.response?.status;
+    const detail = getApiErrorDetail(error);
+
+    if (!error.response) {
+      return {
+        isBackendUnavailable: true,
+        status: error.code ?? "network",
+        message: `${endpoint} could not reach the backend. Check the deployed API URL or network connection.`,
+      };
+    }
+
+    if (status === 401) {
+      return {
+        isBackendUnavailable: false,
+        status,
+        message: `${endpoint} returned 401. Your session may have expired. Please sign in again.`,
+      };
+    }
+
+    if (status === 403) {
+      return {
+        isBackendUnavailable: false,
+        status,
+        message: `${endpoint} returned 403. This account is not allowed to load that dashboard section.`,
+      };
+    }
+
+    if (status === 404) {
+      return {
+        isBackendUnavailable: false,
+        status,
+        message: `${endpoint} returned 404. The endpoint or resource was not found.`,
+      };
+    }
+
+    if (status === 422) {
+      return {
+        isBackendUnavailable: false,
+        status,
+        message: `${endpoint} returned 422. The request parameters were rejected by the API.`,
+      };
+    }
+
+    if (status && status >= 500) {
+      return {
+        isBackendUnavailable: false,
+        status,
+        message: `${endpoint} returned ${status}. ${detail ?? "The server could not load this section."}`,
+      };
+    }
+
+    return {
+      isBackendUnavailable: false,
+      status: status ?? "unknown",
+      message: `${endpoint} failed. ${detail ?? "This section could not be loaded."}`,
+    };
+  }
+
+  return {
+    isBackendUnavailable: false,
+    status: "unknown",
+    message: `${endpoint} failed with an unexpected frontend error.`,
+  };
+}
+
+function DashboardSectionError({ message }: { message: string }) {
+  return (
+    <div className="flex items-start gap-sm rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-body-sm text-amber-200">
+      <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-400" />
+      <p>{message}</p>
+    </div>
+  );
+}
+
 export function StudentDashboardPage() {
   const { user } = useAuth();
   const [requests, setRequests] = useState<LearningRequest[]>([]);
@@ -78,26 +171,55 @@ export function StudentDashboardPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sectionErrors, setSectionErrors] = useState<DashboardSectionErrors>({});
 
   useEffect(() => {
     async function loadDashboard() {
-      try {
-        const [requestData, sessionData, paymentData, reviewData] = await Promise.all([
-          getMyRequests(),
-          getMySessions(),
-          getMyPayments(),
-          getMyReviews(),
-        ]);
-        setRequests(requestData);
-        setSessions(sessionData);
-        setPayments(paymentData);
-        setReviews(reviewData);
-        setError("");
-      } catch {
-        setError("Could not load dashboard data. Make sure the backend is running.");
-      } finally {
-        setLoading(false);
+      const nextSectionErrors: DashboardSectionErrors = {};
+      let networkFailures = 0;
+
+      function handleResult<T>(
+        result: PromiseSettledResult<T>,
+        section: DashboardSectionKey,
+        endpoint: string,
+        applyData: (data: T) => void,
+      ) {
+        if (result.status === "fulfilled") {
+          applyData(result.value);
+          return;
+        }
+
+        const failure = classifyDashboardFailure(endpoint, result.reason);
+        if (failure.isBackendUnavailable) {
+          networkFailures += 1;
+        }
+        nextSectionErrors[section] = failure.message;
+        console.warn("[STUDENT-DASHBOARD] request failed", {
+          endpoint,
+          status: failure.status,
+          message: failure.message,
+        });
       }
+
+      const [requestResult, sessionResult, paymentResult, reviewResult] = await Promise.allSettled([
+        getMyRequests(),
+        getMySessions(),
+        getMyPayments(),
+        getMyReviews(),
+      ]);
+
+      handleResult(requestResult, "requests", "/requests/my", setRequests);
+      handleResult(sessionResult, "sessions", "/sessions/my", setSessions);
+      handleResult(paymentResult, "payments", "/payments/my", setPayments);
+      handleResult(reviewResult, "reviews", "/reviews/my", setReviews);
+
+      setSectionErrors(nextSectionErrors);
+      setError(
+        networkFailures === 4
+          ? "Could not reach the backend API. Check VITE_API_BASE_URL and confirm the Railway service is reachable."
+          : "",
+      );
+      setLoading(false);
     }
 
     void loadDashboard();
@@ -155,6 +277,7 @@ export function StudentDashboardPage() {
   const releasedTotal = payments
     .filter((payment) => payment.status === "released")
     .reduce((total, payment) => total + moneyToNumber(payment.amount), 0);
+  const sectionErrorEntries = Object.entries(sectionErrors) as [DashboardSectionKey, string][];
 
   return (
     <>
@@ -193,6 +316,19 @@ export function StudentDashboardPage() {
 
       <div className="space-y-lg px-margin-mobile py-lg md:px-margin-desktop">
         {error ? <ErrorState message={error} /> : null}
+        {!error && sectionErrorEntries.length > 0 ? (
+          <div className="rounded-2xl border border-[#27272A] bg-[#18181B] p-4 text-body-sm text-zinc-300">
+            <p className="font-medium text-zinc-100">Some dashboard sections could not load.</p>
+            <p className="mt-xs text-zinc-400">The rest of the dashboard is still available.</p>
+            <ul className="mt-sm space-y-xs">
+              {sectionErrorEntries.map(([section, message]) => (
+                <li className="text-zinc-400" key={section}>
+                  <span className="font-medium capitalize text-zinc-200">{section}:</span> {message}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         {loading ? <LoadingState message="Loading dashboard..." /> : null}
 
         <section className="grid gap-md sm:grid-cols-2 xl:grid-cols-4">
@@ -230,7 +366,9 @@ export function StudentDashboardPage() {
                 </Button>
               </div>
 
-              {recentRequests.length > 0 ? (
+              {sectionErrors.requests ? (
+                <DashboardSectionError message={sectionErrors.requests} />
+              ) : recentRequests.length > 0 ? (
                 <div className="overflow-hidden rounded-2xl border border-[#27272A] bg-[#18181B]">
                   {recentRequests.map((request, index) => (
                     <Link
@@ -285,7 +423,9 @@ export function StudentDashboardPage() {
                 <BookOpenCheck className="size-5 text-[#8b5cf6]" />
               </div>
 
-              {nextSessions.length > 0 ? (
+              {sectionErrors.sessions ? (
+                <DashboardSectionError message={sectionErrors.sessions} />
+              ) : nextSessions.length > 0 ? (
                 <div className="space-y-md">
                   {nextSessions.map((session) => (
                     <Link className="block rounded-2xl border border-[#27272A] bg-[#18181B] p-4 transition-all duration-300 hover:border-[#8b5cf6]/30 hover:shadow-[0_4px_20px_rgba(139,92,246,0.05)]" key={session.id} to={`/student/sessions/${session.id}`}>
@@ -316,6 +456,12 @@ export function StudentDashboardPage() {
               <p className="mt-xs text-body-sm text-zinc-400">
                 Simulated escrow keeps session money held until you confirm completion.
               </p>
+
+              {sectionErrors.payments ? (
+                <div className="mt-md">
+                  <DashboardSectionError message={sectionErrors.payments} />
+                </div>
+              ) : null}
 
               <div className="my-lg rounded-2xl border border-[#27272A] bg-[#09090B]/70 p-4">
                 <div className="mb-sm flex items-center justify-between text-body-sm">
